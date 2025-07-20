@@ -177,7 +177,10 @@ The application follows enterprise software development principles, including se
                   View Code
                 </button>
               
-            
+            <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent leading-relaxed">
+            Ranbeer Raja
+          </h1>
+          
             </div>
             <div className="relative">
               <img 
