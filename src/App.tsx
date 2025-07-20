@@ -112,13 +112,13 @@ function App() {
           </h1>
           
           {/* Animated Subtitle - Large */}
-          <div className="mb-12 h-16 md:h-20 overflow-hidden">
+          <div className="mb-12 h-20 md:h-24 overflow-hidden">
             <div 
               className="transition-transform duration-1000 ease-in-out"
-              style={{ transform: `translateY(-${currentRole * (window.innerWidth >= 768 ? 80 : 64)}px)` }}
+              style={{ transform: `translateY(-${currentRole * (window.innerWidth >= 768 ? 96 : 80)}px)` }}
             >
               {roles.map((role, index) => (
-                <h2 key={index} className="text-3xl md:text-5xl font-light text-slate-300 h-16 md:h-20 flex items-center justify-center">
+                <h2 key={index} className="text-3xl md:text-5xl font-light text-slate-300 h-20 md:h-24 flex items-center justify-center leading-relaxed">
                   {role}
                 </h2>
               ))}
