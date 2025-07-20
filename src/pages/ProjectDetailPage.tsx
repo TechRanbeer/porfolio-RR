@@ -18,7 +18,7 @@ const ProjectDetailPage: React.FC = () => {
       longDescription: `This project represents a complete reimagining of what's possible with single-board computers. By leveraging the Raspberry Pi 5's enhanced capabilities, I've created a production-ready server infrastructure that handles everything from file storage to application hosting, all while maintaining enterprise-level security and performance standards.
 
 The system architecture is built around containerization principles, ensuring scalability, maintainability, and security. Every service runs in its own isolated environment, making the system both robust and easy to manage.`,
-      image: "https://images.pexels.com/photos/442150/pexels-photo-442150.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      image: "https://media.istockphoto.com/id/1324356458/vector/picture-icon-photo-frame-symbol-landscape-sign-photograph-gallery-logo-web-interface-and.jpg?s=612x612&w=0&k=20&c=ZmXO4mSgNDPzDRX-F8OKCfmMqqHpqMV6jiNi00Ye7rE=",
       tech: ["Raspberry Pi 5", "Ubuntu Server", "Docker", "CasaOS", "Tailscale VPN", "Nextcloud", "NVMe SSD", "Portainer", "Cockpit", "Watchtower"],
       features: [
         {
@@ -70,7 +70,7 @@ The system architecture is built around containerization principles, ensuring sc
       longDescription: `This inventory management system represents a complete business solution designed to handle the complexities of modern inventory tracking. Built with Java's robust ecosystem, it provides a reliable, secure, and user-friendly platform for managing stock levels, processing sales, and maintaining accurate inventory records.
 
 The application follows enterprise software development principles, including secure database connections, parameterized queries to prevent SQL injection, and a modular architecture that ensures maintainability and scalability.`,
-      image: "https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      image: "https://media.istockphoto.com/id/1324356458/vector/picture-icon-photo-frame-symbol-landscape-sign-photograph-gallery-logo-web-interface-and.jpg?s=612x612&w=0&k=20&c=ZmXO4mSgNDPzDRX-F8OKCfmMqqHpqMV6jiNi00Ye7rE=",
       tech: ["Java SE", "Swing GUI", "MySQL", "JDBC", "PreparedStatement", "DbUtils", "EventQueue"],
       features: [
         {
