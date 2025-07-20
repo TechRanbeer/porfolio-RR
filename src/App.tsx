@@ -162,7 +162,7 @@ function App() {
               Chat with AI Me
             </button>
             <button 
-              onClick={() => window.open('/image.png', '_blank')}
+              onClick={() => window.open('/Resume main.pdf', '_blank')}
               className="bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 hover:border-slate-500 px-8 py-4 rounded-xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
             >
               <FileText className="w-5 h-5" />
