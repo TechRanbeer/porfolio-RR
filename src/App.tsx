@@ -266,12 +266,15 @@ function App() {
                 }}
               >
                 <div className="h-56 overflow-hidden">
-                  <img 
-                    src={project.image} 
-                    alt={project.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                </div>
+  <a href="https://example.com" target="_blank" rel="noopener noreferrer">
+    <img 
+      src="https://media.istockphoto.com/id/1324356458/vector/picture-icon-photo-frame-symbol-landscape-sign-photograph-gallery-logo-web-interface-and.jpg?s=612x612&w=0&k=20&c=ZmXO4mSgNDPzDRX-F8OKCfmMqqHpqMV6jiNi00Ye7rE=" 
+      alt="Gallery icon"
+      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+    />
+  </a>
+</div>
+
                 <div className="p-8">
                   <h3 className="text-2xl font-bold mb-4 group-hover:text-purple-400 transition-colors duration-300">
                     {project.title}
