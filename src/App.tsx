@@ -108,7 +108,7 @@ function App() {
         <div className="max-w-4xl mx-auto text-center">
           {/* Main Name - Extra Large */}
           <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent leading-relaxed">
-            Ranbeer Raja
+            Ranbeer RaJa
           </h1>
           
           {/* Animated Subtitle - Large */}
