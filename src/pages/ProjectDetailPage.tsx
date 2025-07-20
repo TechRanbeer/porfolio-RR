@@ -160,7 +160,7 @@ The application follows enterprise software development principles, including se
             <div>
               <div className="flex items-center gap-2 text-purple-400 mb-4">
                 <Calendar className="w-4 h-4" />
-                <span className="text-sm">2025 Project</span>
+                <span className="text-sm">{projectId === 'raspberry-pi-iot-gateway' ? '2025 Project' : '2024 Project'}</span>
               </div>
               <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent leading-tight">
                 {project.title}
