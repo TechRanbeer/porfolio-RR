@@ -37,7 +37,7 @@ function App() {
       title: "Raspberry Pi IoT Gateway & NAS Server",
       description: "Transformed Raspberry Pi 5 into a full-fledged remote-access NAS and self-hosting server with Docker containerization, secure VPN access, and high-speed NVMe storage",
       tech: ["Raspberry Pi 5", "Ubuntu", "Docker", "CasaOS", "Tailscale", "Nextcloud", "NVMe SSD"],
-      image: "https://images.pexels.com/photos/442150/pexels-photo-442150.jpeg?auto=compress&cs=tinysrgb&w=800",
+      image: "https://www.techsmith.com/wp-content/uploads/2022/03/resize-image.png",
       highlights: ["4GB RAM + 1TB NVMe SSD", "Remote VPN Access", "Docker Containerization", "Real-time Monitoring"]
     },
     {
