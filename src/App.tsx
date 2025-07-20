@@ -107,18 +107,18 @@ function App() {
       <section className="relative min-h-screen flex items-center justify-center px-6 pt-20">
         <div className="max-w-4xl mx-auto text-center">
           {/* Main Name - Extra Large */}
-          <h1 className="text-7xl md:text-7xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent leading-relaxed">
+          <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent leading-tight">
             Ranbeer Raja
           </h1>
           
           {/* Animated Subtitle - Large */}
-          <div className="mb-12 h-20 md:h-24 overflow-hidden">
+          <div className="mb-12 h-16 md:h-20 overflow-hidden">
             <div 
               className="transition-transform duration-1000 ease-in-out"
-              style={{ transform: `translateY(-${currentRole * (window.innerWidth >= 768 ? 96 : 80)}px)` }}
+              style={{ transform: `translateY(-${currentRole * (window.innerWidth >= 768 ? 80 : 64)}px)` }}
             >
               {roles.map((role, index) => (
-                <h2 key={index} className="text-3xl md:text-5xl font-light text-slate-300 h-20 md:h-24 flex items-center justify-center leading-relaxed">
+                <h2 key={index} className="text-3xl md:text-5xl font-light text-slate-300 h-16 md:h-20 flex items-center justify-center">
                   {role}
                 </h2>
               ))}
@@ -162,7 +162,7 @@ function App() {
               Chat with AI Me
             </button>
             <button 
-              onClick={() => window.open('/Resume main.pdf', '_blank')}
+              onClick={() => window.open('/image.png', '_blank')}
               className="bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 hover:border-slate-500 px-8 py-4 rounded-xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
             >
               <FileText className="w-5 h-5" />
@@ -266,15 +266,12 @@ function App() {
                 }}
               >
                 <div className="h-56 overflow-hidden">
-  <a href="https://example.com" target="_blank" rel="noopener noreferrer">
-    <img 
-      src="https://media.istockphoto.com/id/1324356458/vector/picture-icon-photo-frame-symbol-landscape-sign-photograph-gallery-logo-web-interface-and.jpg?s=612x612&w=0&k=20&c=ZmXO4mSgNDPzDRX-F8OKCfmMqqHpqMV6jiNi00Ye7rE=" 
-      alt="Gallery icon"
-      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-    />
-  </a>
-</div>
-
+                  <img 
+                    src={project.image} 
+                    alt={project.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                </div>
                 <div className="p-8">
                   <h3 className="text-2xl font-bold mb-4 group-hover:text-purple-400 transition-colors duration-300">
                     {project.title}
