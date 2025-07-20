@@ -176,11 +176,12 @@ The application follows enterprise software development principles, including se
                   <Github className="w-5 h-5" />
                   View Code
                 </button>
-              
-            <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent leading-relaxed">
-            Ranbeer Raja
-          </h1>
-          
+                <button className="bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 hover:border-slate-500 px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 flex items-center gap-2">
+                </button>
+                  <ExternalLink className="w-5 h-5" />
+                  Live Demo
+                </button>
+              </div>
             </div>
             <div className="relative">
               <img 
