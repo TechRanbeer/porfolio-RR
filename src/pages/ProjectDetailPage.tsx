@@ -175,10 +175,7 @@ The application follows enterprise software development principles, including se
                 <button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 flex items-center gap-2">
                   <Github className="w-5 h-5" />
                   View Code
-                </button>
-                <button className="bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 hover:border-slate-500 px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 flex items-center gap-2">
-                </button>
-                  
+                </button>          
               </div>
             </div>
             <div className="relative">
