@@ -162,7 +162,7 @@ function App() {
               Chat with AI Me
             </button>
             <button 
-              onClick={() => window.open('/image.png', '_blank')}
+              onClick={() => window.open('/Resume main.pdf', '_blank')}
               className="bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 hover:border-slate-500 px-8 py-4 rounded-xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
             >
               <FileText className="w-5 h-5" />
@@ -173,7 +173,7 @@ function App() {
           {/* Social Links */}
           <div className="flex justify-center gap-6">
             <a 
-              href="https://github.com/ranbeer-raja" 
+              href="https://github.com/TechRanbeer" 
               target="_blank" 
               rel="noopener noreferrer"
               className="w-12 h-12 bg-slate-700/50 hover:bg-slate-600/50 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 border border-slate-600 hover:border-slate-500"
