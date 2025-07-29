@@ -1,20 +1,19 @@
 // netlify/functions/gemini.ts
 
-import { generateResponse } from './geminiService'; // Assuming generateResponse is exported from geminiService.ts
+import { generateResponse } from './geminiService'; // Correct import for functions directory
 
 export const handler = async (event: any, context: any) => {
   try {
-    // Check if the body exists and is properly formatted
+    // Check if body exists and is properly formatted
     if (!event.body) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'No body provided' }), // If no body, return an error
+        body: JSON.stringify({ error: 'No body provided' }),
       };
     }
 
     const parsedBody = JSON.parse(event.body);
     
-    // Ensure that 'message' exists in the parsed body
     if (!parsedBody.message) {
       return {
         statusCode: 400,
@@ -24,19 +23,17 @@ export const handler = async (event: any, context: any) => {
 
     const userMessage = parsedBody.message;
 
-    // Call generateResponse and handle the response
+    // Call the AI service to get the response
     const responseText = await generateResponse(userMessage);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ response: responseText }), // Send the response
+      body: JSON.stringify({ response: responseText }), // Return the AI's response
     };
   } catch (error) {
-    console.error('Error in Gemini function:', error); // Log the error for debugging
-
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message || 'Internal Server Error' }), // Handle any error
+      body: JSON.stringify({ error: error.message || 'Internal Server Error' }),
     };
   }
 };
