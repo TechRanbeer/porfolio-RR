@@ -58,7 +58,7 @@ The system architecture is built around containerization principles, ensuring sc
         "Built scalable architecture supporting 20+ concurrent users"
       ],
       gallery: [
-        "https://i.postimg.cc/ppPFKVk4/nas2.jpg",
+        "https://i.postimg.cc/QxTJGH78/nas2.jpg",
         "  ",
         "https://i.postimg.cc/Qtmn7VmG/nas1.jpg"
       ]
