@@ -1,4 +1,4 @@
-// netlify/functions/geminiService.ts
+// netlify/geminiService.ts
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { saveChatConversation } from '../lib/supabase'; // Adjust according to your project structure
@@ -11,7 +11,7 @@ if (!API_KEY) {
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-const model = genAI.getGenerativeModel({
+const model = genAI.getGenerativeModel({ 
   model: "gemini-1.5-flash",
   generationConfig: {
     temperature: 0.7,
