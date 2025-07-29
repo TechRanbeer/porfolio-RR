@@ -59,7 +59,7 @@ The system architecture is built around containerization principles, ensuring sc
       ],
       gallery: [
         "https://i.postimg.cc/0530BpbX/nas3.jpg",
-        "  ",
+        "  ", // This is an empty string, consider replacing with a valid image URL or removing if unintentional
         "https://i.postimg.cc/Qtmn7VmG/nas1.jpg"
       ]
     },
@@ -172,10 +172,17 @@ The application follows enterprise software development principles, including se
                 {project.description}
               </p>
               <div className="flex gap-4">
-                <button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 flex items-center gap-2">
-                  <Github className="w-5 h-5" />
-                  View Code
-                </button>          
+                {/* Inserted the <a> tag here */}
+                <a
+                  href="https://github.com/TechRanbeer" // Your GitHub URL
+                  target="_blank" // Opens in a new tab
+                  rel="noopener noreferrer" // Security best practice
+                >
+                  <button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 flex items-center gap-2">
+                    <Github className="w-5 h-5" />
+                    View Code
+                  </button>
+                </a>
               </div>
             </div>
             <div className="relative">
