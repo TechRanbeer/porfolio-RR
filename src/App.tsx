@@ -37,7 +37,7 @@ function App() {
       title: "Raspberry Pi IoT Gateway & NAS Server",
       description: "Transformed Raspberry Pi 5 into a full-fledged remote-access NAS and self-hosting server with Docker containerization, secure VPN access, and high-speed NVMe storage",
       tech: ["Raspberry Pi 5", "Ubuntu", "Docker", "CasaOS", "Tailscale", "Nextcloud", "NVMe SSD"],
-      image: "./public/dbmsmain.png",
+      image: "https://ibb.co/HTPRwPBY",
       highlights: ["4GB RAM + 1TB NVMe SSD", "Remote VPN Access", "Docker Containerization", "Real-time Monitoring"]
     },
     {
@@ -45,7 +45,7 @@ function App() {
       title: "Java Inventory Management System",
       description: "Professional GUI-based inventory management system built with Java Swing and MySQL, featuring complete CRUD operations, real-time stock tracking, and secure database integration",
       tech: ["Java", "Swing GUI", "MySQL", "JDBC", "PreparedStatement"],
-      image: "./public/dbmsmain.png",
+      image: "https://ibb.co/7xhfC8SL",
       highlights: ["Real-time Stock Management", "Secure SQL Operations", "Professional GUI", "Complete CRUD System"]
     }
   ];
