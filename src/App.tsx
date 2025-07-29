@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronDown, Github, Linkedin, Mail, ExternalLink, Code, Cpu, Zap, Wrench, Settings, Layers, Smartphone, MessageCircle, Bot, Sparkles, FileText, Instagram } from 'lucide-react';
 import { ChatBot } from './components/ChatBot';
 import { ContactModal } from './components/ContactModal';
-import { trackPageView, trackProjectView } from '../lib/supabase';
+import { trackPageView, trackProjectView } from './lib/supabase';
 
 function App() {
   const [scrollY, setScrollY] = useState(0);
