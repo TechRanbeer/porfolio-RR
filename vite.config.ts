@@ -4,7 +4,9 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  define: {
-    'process.env': process.env
+  resolve: {
+    alias: {
+      '@services': '/src/services', // create an alias for the services folder
+    }
   }
 });
