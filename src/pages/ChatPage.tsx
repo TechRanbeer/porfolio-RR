@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, ArrowLeft, Sparkles, MessageCircle, Zap } from 'lucide-react';
+import { trackPageView } from '../lib/supabase';
 
 interface Message {
   id: string;
@@ -22,8 +23,7 @@ const ChatPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Assuming you have a page view tracking function
-    trackPageView('/chat');
+    trackPageView('/chat');  // Make sure this function exists and works as expected
   }, []);
 
   const scrollToBottom = () => {
@@ -58,11 +58,6 @@ const ChatPage: React.FC = () => {
       });
 
       const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: data.response,
