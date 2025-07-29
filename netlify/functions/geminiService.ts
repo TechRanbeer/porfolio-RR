@@ -1,7 +1,8 @@
 // netlify/geminiService.ts
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { saveChatConversation } from './lib/supabase'; 
+import { saveChatConversation } from '../../src/lib/supabase';
+
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
