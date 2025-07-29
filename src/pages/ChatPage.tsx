@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, ArrowLeft, Sparkles, MessageCircle, Zap } from 'lucide-react';
-import { trackPageView } from '../lib/supabase';
+import { trackPageView } from '../../src/lib/supabase';
 
 interface Message {
   id: string;
@@ -23,7 +23,7 @@ const ChatPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    trackPageView('/chat');  // Make sure this function exists and works as expected
+    trackPageView('/chat');
   }, []);
 
   const scrollToBottom = () => {
@@ -49,6 +49,8 @@ const ChatPage: React.FC = () => {
     setIsLoading(true);
 
     try {
+      console.log('Sending message to backend:', inputValue); // Debugging log
+
       const response = await fetch('/.netlify/functions/gemini', {
         method: 'POST',
         headers: {
@@ -57,7 +59,13 @@ const ChatPage: React.FC = () => {
         body: JSON.stringify({ message: inputValue }),
       });
 
+      if (!response.ok) {
+        throw new Error('Failed to fetch response from server');
+      }
+
       const data = await response.json();
+      console.log('AI response received:', data.response); // Debugging log
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: data.response,
@@ -71,7 +79,7 @@ const ChatPage: React.FC = () => {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content:
-          "I'm experiencing some technical difficulties right now. Please try again in a moment, or feel free to contact Ranbeer directly through the contact form.",
+          "I'm having trouble connecting right now. Please try again in a moment, or feel free to contact Ranbeer directly through the contact form.",
         isUser: false,
         timestamp: new Date(),
       };
@@ -98,17 +106,12 @@ const ChatPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-      {/* Background Pattern */}
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(120,119,198,0.15),transparent_50%),radial-gradient(circle_at_80%_80%,rgba(255,119,198,0.15),transparent_50%)] pointer-events-none"></div>
 
-      {/* Header */}
       <div className="relative z-10 border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-md">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => window.history.back()}
-              className="text-slate-400 hover:text-white transition-colors duration-300"
-            >
+            <button onClick={() => window.history.back()} className="text-slate-400 hover:text-white transition-colors duration-300">
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-3">
@@ -131,9 +134,7 @@ const ChatPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Chat Container */}
       <div className="relative z-10 max-w-4xl mx-auto h-[calc(100vh-80px)] flex flex-col">
-        {/* Messages Area */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {messages.length === 1 && (
             <div className="mb-8">
@@ -173,15 +174,8 @@ const ChatPage: React.FC = () => {
                     <Bot className="w-5 h-5 text-slate-300" />
                   )}
                 </div>
-                <div
-                  className={`p-4 rounded-2xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-slate-800/50 text-slate-200 border border-slate-700/50'}`}
-                >
+                <div className={`p-4 rounded-2xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-slate-800/50 text-slate-200 border border-slate-700/50'}`}>
                   <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                  <p
-                    className={`text-xs mt-2 ${message.isUser ? 'text-purple-100' : 'text-slate-400'}`}
-                  >
-                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
                 </div>
               </div>
             </div>
@@ -209,7 +203,6 @@ const ChatPage: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
         <div className="p-6 border-t border-slate-700/50 bg-slate-900/50 backdrop-blur-md">
           <div className="flex gap-4">
             <input
@@ -230,9 +223,6 @@ const ChatPage: React.FC = () => {
               <span className="hidden sm:inline text-white font-medium">Send</span>
             </button>
           </div>
-          <p className="text-xs text-slate-500 mt-2 text-center">
-            This AI assistant is trained on Ranbeer's expertise and can answer questions about his work and experience.
-          </p>
         </div>
       </div>
     </div>
