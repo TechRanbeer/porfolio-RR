@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Send, Mail, Github, Linkedin, Instagram, CheckCircle } from 'lucide-react';
-import { submitContactMessage } from '../lib/supabase';
+import { submitContactMessage } from './lib/supabase';
 
 interface ContactModalProps {
   isOpen: boolean;
