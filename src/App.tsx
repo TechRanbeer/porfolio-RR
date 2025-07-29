@@ -361,7 +361,7 @@ function App() {
           </div>
           
           <div className="grid md:grid-cols-2 gap-12">
-            <div className="bg-slate-800/30 backdrop-blur-sm p-8 rounded-2xl border border-slate-600/50">
+            <div className="bg-slate-800/30 backdrop-blur-sm p-8 rounded-2xl border border-slate-700/50">
               <div className="text-center mb-8">
                 <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Bot className="w-8 h-8 text-white" />
