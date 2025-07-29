@@ -1,6 +1,7 @@
 // netlify/functions/gemini.ts
 
-import { generateResponse } from '../../services/gemini'; // Import the function from services/gemini.ts
+import { generateResponse } from '../services/gemini'; // Adjust path for functions directory
+
 
 export const handler = async (event: any, context: any) => {
   const { userMessage } = JSON.parse(event.body); // Get user message from the request
