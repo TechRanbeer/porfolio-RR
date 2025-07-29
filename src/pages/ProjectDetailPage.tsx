@@ -70,7 +70,7 @@ The system architecture is built around containerization principles, ensuring sc
       longDescription: `This inventory management system represents a complete business solution designed to handle the complexities of modern inventory tracking. Built with Java's robust ecosystem, it provides a reliable, secure, and user-friendly platform for managing stock levels, processing sales, and maintaining accurate inventory records.
 
 The application follows enterprise software development principles, including secure database connections, parameterized queries to prevent SQL injection, and a modular architecture that ensures maintainability and scalability.`,
-      image: "https://media.istockphoto.com/id/1324356458/vector/picture-icon-photo-frame-symbol-landscape-sign-photograph-gallery-logo-web-interface-and.jpg?s=612x612&w=0&k=20&c=ZmXO4mSgNDPzDRX-F8OKCfmMqqHpqMV6jiNi00Ye7rE=",
+      image: "https://i.postimg.cc/pVYnDzKn/dbmsmain.png",
       tech: ["Java SE", "Swing GUI", "MySQL", "JDBC", "PreparedStatement", "DbUtils", "EventQueue"],
       features: [
         {
