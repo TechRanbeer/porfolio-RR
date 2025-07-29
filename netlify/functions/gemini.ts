@@ -1,16 +1,15 @@
 // netlify/functions/gemini.ts
-import { generateResponse } from './gemini'; // Local import from the same folder
+
+import { generateResponse } from '../../services/gemini'; // Adjust the path as needed for your directory structure
 
 export const handler = async (event: any, context: any) => {
-  const userMessage = JSON.parse(event.body).userMessage; // Assuming the message is sent in the request body
-  
   try {
-    // Call the generateResponse function to generate a response from Gemini API
+    const userMessage = JSON.parse(event.body).message; // Assuming you are sending a message in the request body
     const responseText = await generateResponse(userMessage);
-    
+
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: responseText }),
+      body: JSON.stringify({ response: responseText }),
     };
   } catch (error) {
     return {
