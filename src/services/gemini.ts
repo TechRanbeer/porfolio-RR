@@ -1,7 +1,7 @@
 // services/gemini.ts
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { saveChatConversation } from '../lib/supabase'; // Adjust path if needed
+import { saveChatConversation } from '../lib/supabase';
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -11,7 +11,7 @@ if (!API_KEY) {
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-const model = genAI.getGenerativeModel({
+const model = genAI.getGenerativeModel({ 
   model: "gemini-1.5-flash",
   generationConfig: {
     temperature: 0.7,
@@ -25,7 +25,7 @@ const SYSTEM_PROMPT = `...`; // Your system prompt here
 
 export async function generateResponse(userMessage: string): Promise<string> {
   const sessionId = getOrCreateSessionId();
-
+  
   try {
     const chat = model.startChat({
       history: [
@@ -43,10 +43,10 @@ export async function generateResponse(userMessage: string): Promise<string> {
     const result = await chat.sendMessage(userMessage);
     const response = await result.response;
     const responseText = response.text();
-
+    
     // Save conversation to database
     await saveChatConversation(sessionId, userMessage, responseText);
-
+    
     return responseText;
   } catch (error) {
     console.error('Error generating response:', error);
