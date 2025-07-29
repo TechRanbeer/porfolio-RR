@@ -110,9 +110,9 @@ The application follows enterprise software development principles, including se
         "Developed robust error handling and user feedback systems"
       ],
       gallery: [
-        "https://media.istockphoto.com/id/1324356458/vector/picture-icon-photo-frame-symbol-landscape-sign-photograph-gallery-logo-web-interface-and.jpg?s=612x612&w=0&k=20&c=ZmXO4mSgNDPzDRX-F8OKCfmMqqHpqMV6jiNi00Ye7rE=",
-        "https://media.istockphoto.com/id/1324356458/vector/picture-icon-photo-frame-symbol-landscape-sign-photograph-gallery-logo-web-interface-and.jpg?s=612x612&w=0&k=20&c=ZmXO4mSgNDPzDRX-F8OKCfmMqqHpqMV6jiNi00Ye7rE=",
-        "https://media.istockphoto.com/id/1324356458/vector/picture-icon-photo-frame-symbol-landscape-sign-photograph-gallery-logo-web-interface-and.jpg?s=612x612&w=0&k=20&c=ZmXO4mSgNDPzDRX-F8OKCfmMqqHpqMV6jiNi00Ye7rE="
+        "https://i.postimg.cc/PJ27ZNtv/dbms1.png",
+        "https://i.postimg.cc/pTvc6Krn/dbms2.png",
+        "https://i.postimg.cc/prXG2xDW/dbms3.png"
       ]
     }
   };
