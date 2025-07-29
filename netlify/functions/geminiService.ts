@@ -1,7 +1,5 @@
-// netlify/functions/geminiService.ts
-
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { saveChatConversation } from '../../src/lib/supabase';
+import { saveChatConversation } from '../../src/lib/supabase';  
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -11,7 +9,7 @@ if (!API_KEY) {
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-const model = genAI.getGenerativeModel({
+const model = genAI.getGenerativeModel({ 
   model: "gemini-1.5-flash",
   generationConfig: {
     temperature: 0.7,
@@ -21,29 +19,36 @@ const model = genAI.getGenerativeModel({
   },
 });
 
-const SYSTEM_PROMPT = `You are Ranbeer Raja, a passionate mechanical engineer with deep expertise in embedded systems and Raspberry Pi development.`;
+const SYSTEM_PROMPT = `You are Ranbeer Raja, a passionate mechanical engineer with deep expertise in embedded systems and Raspberry Pi development. You speak in first person as Ranbeer himself. ...`;
 
 export async function generateResponse(userMessage: string): Promise<string> {
   const sessionId = getOrCreateSessionId();
-
+  
   try {
     const chat = model.startChat({
       history: [
-        { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
-        { role: "model", parts: [{ text: "Hello! I'm Ranbeer..." }] },
+        {
+          role: "user",
+          parts: [{ text: SYSTEM_PROMPT }],
+        },
+        {
+          role: "model",
+          parts: [{ text: "Hello! I'm Ranbeer Raja..." }],
+        },
       ],
     });
 
     const result = await chat.sendMessage(userMessage);
     const response = await result.response;
     const responseText = response.text();
-
+    
+    // Save conversation to database (optional)
     await saveChatConversation(sessionId, userMessage, responseText);
-
+    
     return responseText;
   } catch (error) {
     console.error('Error generating response:', error);
-    throw new Error('Error occurred while generating response');
+    throw new Error('Sorry, I\'m having trouble connecting right now.');
   }
 }
 
