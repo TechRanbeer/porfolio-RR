@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, ArrowLeft, Sparkles, MessageCircle, Zap } from 'lucide-react';
 import { generateResponse } from '../../services/gemini';
 import { trackPageView } from '../lib/supabase';
-import { generateResponse } from '@services/gemini';
+import { generateResponse } from '../geminiService'; 
+
 
 
 interface Message {
