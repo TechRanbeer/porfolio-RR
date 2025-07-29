@@ -1,6 +1,6 @@
 // netlify/functions/gemini.ts
 
-import { generateResponse } from '../services/gemini'; // Correct relative path to services/gemini
+import { generateResponse } from '../../services/gemini'; // Correct relative path
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -13,7 +13,7 @@ export const handler = async (event: any, context: any) => {
     }
 
     const parsedBody = JSON.parse(event.body);
-
+    
     // Ensure that 'message' exists in the parsed body
     if (!parsedBody.message) {
       return {
@@ -24,7 +24,7 @@ export const handler = async (event: any, context: any) => {
 
     const userMessage = parsedBody.message;
 
-    // Call generateResponse from services/gemini and handle the response
+    // Call generateResponse and handle the response
     const responseText = await generateResponse(userMessage);
 
     return {
