@@ -1,11 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, ArrowLeft, Sparkles, MessageCircle, Zap } from 'lucide-react';
-import { trackPageView } from '../lib/supabase';
-import { generateResponse } from "../../netlify/geminiService";
-
-  
-
-
 
 interface Message {
   id: string;
@@ -28,6 +22,7 @@ const ChatPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Assuming you have a page view tracking function
     trackPageView('/chat');
   }, []);
 
@@ -54,16 +49,23 @@ const ChatPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const aiResponseText = await generateResponse(inputValue);
-      
-      const aiResponse: Message = {
+      const response = await fetch("/.netlify/functions/gemini", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: inputValue }),
+      });
+
+      const data = await response.json();
+      const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: aiResponseText,
+        content: data.response,
         isUser: false,
         timestamp: new Date()
       };
 
-      setMessages(prev => [...prev, aiResponse]);
+      setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage: Message = {
@@ -77,7 +79,6 @@ const ChatPage: React.FC = () => {
       setIsLoading(false);
     }
   };
-
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -224,26 +225,4 @@ const ChatPage: React.FC = () => {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask me anything about Ranbeer's experience, projects, or skills..."
-              className="flex-1 bg-slate-800/50 border border-slate-700 rounded-xl px-6 py-4 text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
-              disabled={isLoading}
-            />
-            <button
-              onClick={sendMessage}
-              disabled={!inputValue.trim() || isLoading}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-4 rounded-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
-            >
-              <Send className="w-5 h-5 text-white" />
-              <span className="hidden sm:inline text-white font-medium">Send</span>
-            </button>
-          </div>
-          <p className="text-xs text-slate-500 mt-2 text-center">
-            This AI assistant is trained on Ranbeer's expertise and can answer questions about his work and experience.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default ChatPage;
+              placeholder="Ask me anything about Ranbeer's experience, projec
