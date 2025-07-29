@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, ArrowLeft, Sparkles, MessageCircle, Zap } from 'lucide-react';
-import { trackPageView } from '../lib/supabase';
+import { trackPageView } from '../../src/lib/supabase';
 
 interface Message {
   id: string;
