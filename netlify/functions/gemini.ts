@@ -1,6 +1,6 @@
 // netlify/functions/gemini.ts
 
-import { generateResponse } from './geminiService'; // Correct relative path
+import { generateResponse } from '../../services/gemini'; // Correct the path to access the service
 
 export const handler = async (event: any, context: any) => {
   try {
