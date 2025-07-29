@@ -45,7 +45,7 @@ function App() {
       title: "Java Inventory Management System",
       description: "Professional GUI-based inventory management system built with Java Swing and MySQL, featuring complete CRUD operations, real-time stock tracking, and secure database integration",
       tech: ["Java", "Swing GUI", "MySQL", "JDBC", "PreparedStatement"],
-      image: "https://ibb.co/7xhfC8SL",
+      image: "https://i.postimg.cc/pVYnDzKn/dbmsmain.png"",
       highlights: ["Real-time Stock Management", "Secure SQL Operations", "Professional GUI", "Complete CRUD System"]
     }
   ];
