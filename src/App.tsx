@@ -450,4 +450,39 @@ function App() {
   );
 }
 
+const App: React.FC = () => {
+  const [geminiData, setGeminiData] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch Gemini data
+  const fetchGeminiData = async () => {
+    try {
+      const response = await fetch('/.netlify/functions/gemini'); // Call the Netlify function
+      const data = await response.json();
+      setGeminiData(data); // Update state with the data
+    } catch (err) {
+      setError('Error fetching data');
+      console.error('Error fetching Gemini data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGeminiData(); // Fetch data when component mounts
+  }, []);
+
+  return (
+    <div>
+      <h1>Gemini API Data</h1>
+      {loading && <p>Loading...</p>}
+      {error && <p>{error}</p>}
+      {geminiData && (
+        <pre>{JSON.stringify(geminiData, null, 2)}</pre> // Display data in a readable format
+      )}
+    </div>
+  );
+};
+
 export default App;
