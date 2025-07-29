@@ -19,8 +19,8 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
       id: '1',
       text: "Hi! I'm Ranbeer's AI assistant. I can answer questions about his background, projects, and expertise. What would you like to know?",
       isUser: false,
-      timestamp: new Date()
-    }
+      timestamp: new Date(),
+    },
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +41,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
       id: Date.now().toString(),
       text: inputMessage,
       isUser: true,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -50,34 +50,39 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
 
     try {
       // Call the Netlify function that triggers the backend
-      const response = await fetch("/.netlify/functions/gemini", {
-        method: "POST",
+      const response = await fetch('/.netlify/functions/gemini', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ message: inputMessage }),
       });
 
+      // Check if response is ok
       if (!response.ok) {
-        throw new Error("Failed to fetch response from server");
+        throw new Error('Failed to fetch response from server');
       }
 
+      // Get response from Netlify function
       const data = await response.json();
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: data.response,
         isUser: false,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
+
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: "I'm having trouble connecting right now. Please try again or contact Ranbeer directly at ranbeerraja1@gmail.com",
         isUser: false,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
+      console.error('Error during fetch request:', error);
     } finally {
       setIsLoading(false);
     }
@@ -90,6 +95,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
     }
   };
 
+  // If not open, return null
   if (!isOpen) return null;
 
   return (
@@ -100,10 +106,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
           <Bot className="w-5 h-5" />
           <span className="font-semibold">Chat with AI Ranbeer</span>
         </div>
-        <button
-          onClick={onToggle}
-          className="text-white hover:text-gray-200 transition-colors"
-        >
+        <button onClick={onToggle} className="text-white hover:text-gray-200 transition-colors">
           <X className="w-5 h-5" />
         </button>
       </div>
@@ -111,17 +114,8 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
-          >
-            <div
-              className={`max-w-[80%] p-3 rounded-lg ${
-                message.isUser
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                  : 'bg-gray-100 text-gray-800'
-              }`}
-            >
+          <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[80%] p-3 rounded-lg ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
               <div className="flex items-start space-x-2">
                 {!message.isUser && <Bot className="w-4 h-4 mt-0.5 flex-shrink-0" />}
                 <p className="text-sm">{message.text}</p>
