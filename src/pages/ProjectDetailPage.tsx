@@ -59,7 +59,7 @@ The system architecture is built around containerization principles, ensuring sc
       ],
       gallery: [
         "https://i.postimg.cc/0530BpbX/nas3.jpg",
-        "  ", // This is an empty string, consider replacing with a valid image URL or removing if unintentional
+        "https://i.postimg.cc/C1mCsQ2d/Screenshot-2025-07-29-234153.png",
         "https://i.postimg.cc/Qtmn7VmG/nas1.jpg"
       ]
     },
