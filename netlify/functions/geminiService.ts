@@ -3,16 +3,13 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { saveChatConversation } from '../../src/lib/supabase'; // Correct import path for your Supabase functions
 
-// Ensure the Gemini API key is set in your environment
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 if (!API_KEY) {
   throw new Error('Gemini API key not found. Please check your environment variables.');
 }
 
-// Initialize the AI model
 const genAI = new GoogleGenerativeAI(API_KEY);
-
 const model = genAI.getGenerativeModel({
   model: "gemini-1.5-flash",
   generationConfig: {
@@ -28,10 +25,9 @@ const SYSTEM_PROMPT = `You are Ranbeer Raja, a passionate mechanical engineer wi
 
 export async function generateResponse(userMessage: string): Promise<string> {
   const sessionId = getOrCreateSessionId();
-  console.log(`Generating response for: ${userMessage}`);
+  console.log(`Received user message: ${userMessage}`); // Debugging log
 
   try {
-    // Start the conversation with the AI
     const chat = model.startChat({
       history: [
         { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
@@ -39,19 +35,17 @@ export async function generateResponse(userMessage: string): Promise<string> {
       ],
     });
 
-    // Send the user message and get the response
     const result = await chat.sendMessage(userMessage);
     const response = await result.response;
     const responseText = response.text();
 
-    console.log(`AI response generated: ${responseText}`);
+    console.log(`AI response generated: ${responseText}`); // Debugging log
 
-    // Save the conversation
     await saveChatConversation(sessionId, userMessage, responseText);
 
     return responseText;
   } catch (error) {
-    console.error('Error generating response:', error);
+    console.error('Error generating response:', error); // Debugging log
     throw new Error('Sorry, I\'m having trouble connecting right now.');
   }
 }
