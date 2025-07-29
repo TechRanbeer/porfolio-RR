@@ -18,7 +18,7 @@ const ProjectDetailPage: React.FC = () => {
       longDescription: `This project represents a complete reimagining of what's possible with single-board computers. By leveraging the Raspberry Pi 5's enhanced capabilities, I've created a production-ready server infrastructure that handles everything from file storage to application hosting, all while maintaining enterprise-level security and performance standards.
 
 The system architecture is built around containerization principles, ensuring scalability, maintainability, and security. Every service runs in its own isolated environment, making the system both robust and easy to manage.`,
-      image: "https://i.postimg.cc/0530BpbX/nas3.jpg",
+      image: "https://i.postimg.cc/QxTJGH78/nas2.jpg",
       tech: ["Raspberry Pi 5", "Ubuntu Server", "Docker", "CasaOS", "Tailscale VPN", "Nextcloud", "NVMe SSD", "Portainer", "Cockpit", "Watchtower"],
       features: [
         {
@@ -58,7 +58,7 @@ The system architecture is built around containerization principles, ensuring sc
         "Built scalable architecture supporting 20+ concurrent users"
       ],
       gallery: [
-        "https://i.postimg.cc/QxTJGH78/nas2.jpg",
+        "https://i.postimg.cc/0530BpbX/nas3.jpg",
         "  ",
         "https://i.postimg.cc/Qtmn7VmG/nas1.jpg"
       ]
