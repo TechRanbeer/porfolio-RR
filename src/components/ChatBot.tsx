@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, User, Bot } from 'lucide-react';
-import { generateResponse } from '../services/gemini';
 
 interface Message {
   id: string;
@@ -50,10 +49,23 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
     setIsLoading(true);
 
     try {
-      const response = await generateResponse(inputMessage);
+      // Call the Netlify function that triggers the backend
+      const response = await fetch("/.netlify/functions/gemini", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: inputMessage }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch response from server");
+      }
+
+      const data = await response.json();
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: response,
+        text: data.response,
         isUser: false,
         timestamp: new Date()
       };
