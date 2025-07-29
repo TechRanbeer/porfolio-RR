@@ -1,51 +1,39 @@
-// netlify/functions/geminiService.ts
+// netlify/functions/gemini.ts
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { saveChatConversation } from '../../src/lib/supabase';  // Correct import path for your Supabase functions
+import { generateResponse } from './geminiService'; // Correct import for functions directory
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-
-if (!API_KEY) {
-  throw new Error('Gemini API key not found. Please check your environment variables.');
-}
-
-const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash",
-  generationConfig: {
-    temperature: 0.7,
-    topP: 0.8,
-    topK: 40,
-    maxOutputTokens: 1024,
-  },
-});
-
-const SYSTEM_PROMPT = `You are Ranbeer Raja, a passionate mechanical engineer with deep expertise...`;
-
-export async function generateResponse(userMessage: string): Promise<string> {
-  const sessionId = getOrCreateSessionId();
-  console.log(`Generating response for: ${userMessage}`);
-
+export const handler = async (event: any, context: any) => {
   try {
-    const chat = model.startChat({
-      history: [
-        { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
-        { role: "model", parts: [{ text: "Hello! I'm Ranbeer Raja..." }] },
-      ],
-    });
+    // Check if body exists and is properly formatted
+    if (!event.body) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'No body provided' }),
+      };
+    }
 
-    const result = await chat.sendMessage(userMessage);
-    const response = await result.response;
-    const responseText = response.text();
+    const parsedBody = JSON.parse(event.body);
+    
+    if (!parsedBody.message) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Message not provided in request body' }),
+      };
+    }
 
-    console.log(`AI response generated: ${responseText}`);
+    const userMessage = parsedBody.message;
 
-    // Save the conversation
-    await saveChatConversation(sessionId, userMessage, responseText);
+    // Call the AI service to get the response
+    const responseText = await generateResponse(userMessage);
 
-    return responseText;
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ response: responseText }), // Return the AI's response
+    };
   } catch (error) {
-    console.error('Error generating response:', error);
-    throw new Error('Sorry, I\'m having trouble connecting right now.');
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: error.message || 'Internal Server Error' }),
+    };
   }
-}
+};
