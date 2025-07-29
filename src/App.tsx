@@ -417,7 +417,7 @@ function App() {
                     <p className="text-slate-400 text-sm">+91 Ranbeer</p>
                   </div>
                 </div>
-                <p className="text-slate-400 text-sm">Mon-Fri from 9am to 6pm</p>
+                <p className="text-slate-400 text-sm">Mon-Fri from 10am to 4pm</p>
               </div>
               
               <div className="bg-slate-800/30 backdrop-blur-sm p-6 rounded-2xl border border-slate-700/50">
