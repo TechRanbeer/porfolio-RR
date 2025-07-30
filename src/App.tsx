@@ -3,6 +3,8 @@ import { ChevronDown, Github, Linkedin, Mail, ExternalLink, Code, Cpu, Zap, Wren
 import { ChatBot } from './components/ChatBot';
 import { ContactModal } from './components/ContactModal';
 import { trackPageView, trackProjectView } from './lib/supabase';
+console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
+
 
 function App() {
   const [scrollY, setScrollY] = useState(0);
