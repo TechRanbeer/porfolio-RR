@@ -56,8 +56,12 @@ const handler: Handler = async (event) => {
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message || 'Unknown error' }),
+      statusCode: 200,
+  body: JSON.stringify({
+    response: result,
     };
   }
 };
 
 export { handler };
+
