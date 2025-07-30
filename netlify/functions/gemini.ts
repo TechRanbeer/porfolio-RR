@@ -2,9 +2,9 @@
 
 import { Handler } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
-import { generateResponse } from '../../services/gemini'; // Correct path to your service
+import { generateResponse } from './geminiService';  // Import from the same folder
 
-// Load backend environment variables
+// Backend env vars (without VITE_ prefix)
 const supabaseUrl = process.env.SUPABASE_URL!;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const geminiApiKey = process.env.GEMINI_API_KEY!;
@@ -13,7 +13,7 @@ if (!supabaseUrl || !supabaseServiceRoleKey || !geminiApiKey) {
   throw new Error('Missing SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, or GEMINI_API_KEY environment variables');
 }
 
-// Initialize Supabase client with service role key for backend
+// Create supabase client for server side
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
 export const handler: Handler = async (event, context) => {
@@ -36,7 +36,7 @@ export const handler: Handler = async (event, context) => {
 
     const userMessage = parsedBody.message;
 
-    // You can pass geminiApiKey to generateResponse if needed
+    // Pass geminiApiKey if your service needs it
     const responseText = await generateResponse(userMessage, geminiApiKey);
 
     return {
