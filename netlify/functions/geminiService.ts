@@ -1,7 +1,11 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { supabaseServer } from '../../src/lib/supabaseServer';
+// netlify/functions/geminiService.ts
 
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { saveChatConversation } from '../../src/lib/supabase'; // Adjust path if needed
+
+// IMPORTANT: use process.env for backend-only secrets
 const API_KEY = process.env.GEMINI_API_KEY;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY; // if needed
 
 if (!API_KEY) {
   throw new Error('Gemini API key not found. Please check your environment variables.');
@@ -24,6 +28,7 @@ export async function generateResponse(userMessage: string, sessionId: string): 
   console.log(`Generating response for session: ${sessionId}, message: ${userMessage}`);
 
   try {
+    // Start chat with system prompt
     const chat = model.startChat({
       history: [
         { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
@@ -31,17 +36,15 @@ export async function generateResponse(userMessage: string, sessionId: string): 
       ],
     });
 
+    // Send user's message
     const result = await chat.sendMessage(userMessage);
     const response = await result.response;
     const responseText = response.text();
 
     console.log(`AI response: ${responseText}`);
 
-    await supabaseServer.from('chat_conversations').insert({
-      session_id: sessionId,
-      user_message: userMessage,
-      ai_response: responseText,
-    });
+    // Save conversation with sessionId
+    await saveChatConversation(sessionId, userMessage, responseText);
 
     return responseText;
   } catch (error) {
