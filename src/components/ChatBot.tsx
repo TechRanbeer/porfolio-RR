@@ -62,6 +62,12 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
         body: JSON.stringify({ message: inputMessage, sessionId }),
       });
 
+      const contentType = response.headers.get('content-type');
+      if (!contentType?.includes('application/json')) {
+        const errorText = await response.text();
+        throw new Error('Expected JSON, got HTML:\n' + errorText.slice(0, 300));
+      }
+
       const data = await response.json();
 
       if (!response.ok || !data.response) {
@@ -76,7 +82,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
       };
 
       setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: "I'm having trouble connecting right now. Please try again or contact Ranbeer directly at ranbeerraja1@gmail.com",
@@ -84,7 +90,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
-      console.error('Error during fetch request:', error);
+      console.error('Error fetching Gemini data:', error);
     } finally {
       setIsLoading(false);
     }
