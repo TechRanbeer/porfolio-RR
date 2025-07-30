@@ -2,12 +2,9 @@
 
 import { generateResponse } from './geminiService';
 
-export const handler = async (event: any, context: any) => {
-  console.log('Received request to generate response');
-
+export const handler = async (event: any) => {
   try {
     if (!event.body) {
-      console.log('Error: No body provided');
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'No body provided' }),
@@ -15,28 +12,29 @@ export const handler = async (event: any, context: any) => {
     }
 
     const parsedBody = JSON.parse(event.body);
-    console.log('Parsed Body:', parsedBody);
-
     const { message, sessionId } = parsedBody;
 
     if (!message) {
-      console.log('Error: Message not provided in request body');
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'Message not provided in request body' }),
       };
     }
 
-    // Pass sessionId to the generateResponse function
-    const responseText = await generateResponse(message, sessionId);
+    if (!sessionId) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Session ID not provided in request body' }),
+      };
+    }
 
-    console.log('Generated AI Response:', responseText);
+    const responseText = await generateResponse(message, sessionId);
 
     return {
       statusCode: 200,
       body: JSON.stringify({ response: responseText }),
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in gemini function:', error);
     return {
       statusCode: 500,
