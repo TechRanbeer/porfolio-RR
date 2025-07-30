@@ -4,14 +4,13 @@ import { trackPageView } from '../../src/lib/supabase';
 
 interface Message {
   id: string;
-  content: string;
+  text: string; // 👈 Changed from 'content' to 'text' to match Gemini response structure
   isUser: boolean;
   timestamp: Date;
 }
 
 const ChatPage: React.FC = () => {
-  // Initialize or retrieve session ID from localStorage
-  const [sessionId] = React.useState(() => {
+  const [sessionId] = useState(() => {
     let storedId = localStorage.getItem('chat_session_id');
     if (!storedId) {
       storedId = 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
@@ -23,7 +22,7 @@ const ChatPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content:
+      text:
         "Welcome to my AI-powered chat! I'm an AI trained on Ranbeer's expertise, experience, and personality. I can discuss his projects, technical skills, career journey, and answer any questions you might have about working with him. How can I help you today?",
       isUser: false,
       timestamp: new Date(),
@@ -50,7 +49,7 @@ const ChatPage: React.FC = () => {
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: inputValue,
+      text: inputValue,
       isUser: true,
       timestamp: new Date(),
     };
@@ -60,15 +59,12 @@ const ChatPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      console.log('Sending message to backend:', inputValue);
-
       const response = await fetch('/.netlify/functions/gemini', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        // Send sessionId along with message
-        body: JSON.stringify({ message: inputValue, sessionId }),
+        body: JSON.stringify({ message: inputValue, sessionId }), // ✅ matches expected shape
       });
 
       if (!response.ok) {
@@ -76,21 +72,19 @@ const ChatPage: React.FC = () => {
       }
 
       const data = await response.json();
-      console.log('AI response received:', data.response);
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: data.response,
+        text: data.response, // ✅ use `text` instead of `content`
         isUser: false,
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
-      console.error('Error sending message:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content:
+        text:
           "I'm having trouble connecting right now. Please try again in a moment, or feel free to contact Ranbeer directly through the contact form.",
         isUser: false,
         timestamp: new Date(),
@@ -202,7 +196,7 @@ const ChatPage: React.FC = () => {
                       : 'bg-slate-800/50 text-slate-200 border border-slate-700/50'
                   }`}
                 >
-                  <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                  <p className="leading-relaxed whitespace-pre-wrap">{message.text}</p>
                 </div>
               </div>
             </div>
