@@ -1,44 +1,33 @@
-// netlify/functions/gemini.ts
+// File: netlify/functions/gemini.ts
 
-import { generateResponse } from './geminiService'; // Adjusted relative path based on your structure
+import { Handler } from '@netlify/functions';
+import { generateResponse } from './geminiService';
 
-export const handler = async (event: any) => {
+const handler: Handler = async (event) => {
   try {
-    if (!event.body) {
+    const body = JSON.parse(event.body || '{}');
+    const { message, sessionId } = body;
+
+    if (!message || !sessionId) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'No request body provided' }),
+        body: JSON.stringify({ error: 'Missing message or sessionId' }),
       };
     }
 
-    const { message, sessionId } = JSON.parse(event.body);
-
-    if (!message) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Message not provided in request body' }),
-      };
-    }
-
-    if (!sessionId) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Session ID not provided in request body' }),
-      };
-    }
-
-    const responseText = await generateResponse(message, sessionId);
+    const response = await generateResponse(message, sessionId);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ response: responseText }),
+      body: JSON.stringify({ response }),
     };
-  } catch (error: any) {
-    console.error('Error in Gemini function:', error);
-
+  } catch (error) {
+    console.error('Gemini function error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message || 'Internal Server Error' }),
+      body: JSON.stringify({ error: 'Internal Server Error' }),
     };
   }
 };
+
+export { handler };
