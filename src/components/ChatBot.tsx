@@ -14,21 +14,14 @@ interface ChatBotProps {
 }
 
 export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
-  const [sessionId] = React.useState(() => {
-    let id = localStorage.getItem('chat_session_id');
-    if (!id) {
-      id = 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-      localStorage.setItem('chat_session_id', id);
-    }
-    return id;
-  });
-
-  const [messages, setMessages] = useState<Message[]>([{
-    id: '1',
-    text: "Hi! I'm Ranbeer's AI assistant. I can answer questions about his background, projects, and expertise. What would you like to know?",
-    isUser: false,
-    timestamp: new Date(),
-  }]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      text: "Hi! I'm Ranbeer's AI assistant. I can answer questions about his background, projects, and expertise. What would you like to know?",
+      isUser: false,
+      timestamp: new Date(),
+    },
+  ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -56,32 +49,32 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
     setIsLoading(true);
 
     try {
+      // Call the Netlify function that triggers the backend
       const response = await fetch('/.netlify/functions/gemini', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: inputMessage, sessionId }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: inputMessage }),
       });
 
-      const contentType = response.headers.get('content-type');
-      if (!contentType?.includes('application/json')) {
-        const errorText = await response.text();
-        throw new Error('Expected JSON, got HTML:\n' + errorText.slice(0, 300));
+      // Check if response is ok
+      if (!response.ok) {
+        throw new Error('Failed to fetch response from server');
       }
 
+      // Get response from Netlify function
       const data = await response.json();
-
-      const geminiReply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!geminiReply) throw new Error('No valid reply from Gemini');
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: geminiReply,
+        text: data.response,
         isUser: false,
         timestamp: new Date(),
       };
 
       setMessages(prev => [...prev, aiMessage]);
-    } catch (error: any) {
+    } catch (error) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: "I'm having trouble connecting right now. Please try again or contact Ranbeer directly at ranbeerraja1@gmail.com",
@@ -89,7 +82,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
-      console.error('Error fetching Gemini data:', error);
+      console.error('Error during fetch request:', error);
     } finally {
       setIsLoading(false);
     }
@@ -102,10 +95,12 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
     }
   };
 
+  // If not open, return null
   if (!isOpen) return null;
 
   return (
     <div className="fixed bottom-20 right-4 w-80 h-96 bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col z-50">
+      {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-t-lg">
         <div className="flex items-center space-x-2">
           <Bot className="w-5 h-5" />
@@ -116,13 +111,14 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
         </button>
       </div>
 
+      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.map((message) => (
           <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[80%] p-3 rounded-lg ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
               <div className="flex items-start space-x-2">
                 {!message.isUser && <Bot className="w-4 h-4 mt-0.5 flex-shrink-0" />}
-                <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                <p className="text-sm">{message.text}</p>
                 {message.isUser && <User className="w-4 h-4 mt-0.5 flex-shrink-0" />}
               </div>
             </div>
@@ -145,13 +141,14 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Input */}
       <div className="p-4 border-t border-gray-200">
         <div className="flex space-x-2">
           <input
             type="text"
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
-            onKeyDown={handleKeyPress}
+            onKeyPress={handleKeyPress}
             placeholder="Ask me anything about Ranbeer..."
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             disabled={isLoading}
@@ -168,3 +165,4 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
     </div>
   );
 };
+
