@@ -3,69 +3,6 @@ import { ChevronDown, Github, Linkedin, Mail, ExternalLink, Code, Cpu, Zap, Wren
 import { ChatBot } from './components/ChatBot';
 import { ContactModal } from './components/ContactModal';
 import { trackPageView, trackProjectView } from './lib/supabase';
-import React, { useState } from 'react';
-import ChatPage from './ChatPage'; // assuming ChatPage handles UI
-
-function App() {
-  const [chatHistory, setChatHistory] = useState<{ role: string; content: string }[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchGeminiData = async (message: string) => {
-    const response = await fetch('/.netlify/functions/gemini', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ message }),
-    });
-
-    // If the response is not OK
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Gemini function error:', errorText);
-      throw new Error('Function failed');
-    }
-
-    // Validate JSON response
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      const text = await response.text();
-      console.error('Expected JSON but got:', text);
-      throw new Error('Invalid JSON from Gemini');
-    }
-
-    const data = await response.json();
-
-    if (!data.response) {
-      throw new Error('No valid response from Gemini');
-    }
-
-    return data.response;
-  };
-
-  const handleSendMessage = async (message: string) => {
-    const updatedHistory = [...chatHistory, { role: 'user', content: message }];
-    setChatHistory(updatedHistory);
-    setLoading(true);
-
-    try {
-      const reply = await fetchGeminiData(message);
-      setChatHistory((prev) => [...prev, { role: 'assistant', content: reply }]);
-    } catch (error: any) {
-      console.error('Error fetching Gemini data:', error);
-      setChatHistory((prev) => [...prev, { role: 'assistant', content: '⚠️ Something went wrong. Please try again.' }]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-[#0d1117] text-white p-4">
-      <h1 className="text-3xl font-bold mb-4 text-center text-[#58a6ff]">Gemini ChatBot</h1>
-      <ChatPage messages={chatHistory} onSend={handleSendMessage} loading={loading} />
-    </div>
-  );
-}
 
 
 function App() {
