@@ -70,13 +70,12 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
 
       const data = await response.json();
 
-      if (!response.ok || !data.response) {
-        throw new Error(data.error || 'Unknown error from server');
-      }
+      const geminiReply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!geminiReply) throw new Error('No valid reply from Gemini');
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.response,
+        text: geminiReply,
         isUser: false,
         timestamp: new Date(),
       };
