@@ -1,10 +1,9 @@
+// src/lib/supabase.ts (or wherever your client lib is)
+
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-console.log('Supabase URL:', supabaseUrl);
-console.log('Supabase Anon Key:', supabaseAnonKey ? 'Loaded' : 'Missing');
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
@@ -101,7 +100,7 @@ export const saveChatConversation = async (sessionId: string, userMessage: strin
 function getOrCreateVisitorId(): string {
   let visitorId = localStorage.getItem('visitor_id');
   if (!visitorId) {
-    visitorId = 'visitor_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+    visitorId = 'visitor_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
     localStorage.setItem('visitor_id', visitorId);
   }
   return visitorId;
