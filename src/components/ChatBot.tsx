@@ -26,6 +26,16 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Persist sessionId in localStorage
+  const [sessionId, setSessionId] = React.useState(() => {
+    let id = localStorage.getItem('chat_session_id');
+    if (!id) {
+      id = 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+      localStorage.setItem('chat_session_id', id);
+    }
+    return id;
+  });
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -49,21 +59,19 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
     setIsLoading(true);
 
     try {
-      // Call the Netlify function that triggers the backend
+      // Send message + sessionId to backend
       const response = await fetch('/.netlify/functions/gemini', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: inputMessage }),
+        body: JSON.stringify({ message: inputMessage, sessionId }),
       });
 
-      // Check if response is ok
       if (!response.ok) {
         throw new Error('Failed to fetch response from server');
       }
 
-      // Get response from Netlify function
       const data = await response.json();
 
       const aiMessage: Message = {
@@ -95,7 +103,6 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
     }
   };
 
-  // If not open, return null
   if (!isOpen) return null;
 
   return (
