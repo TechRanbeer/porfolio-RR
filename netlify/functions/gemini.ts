@@ -1,41 +1,32 @@
-// netlify/functions/gemini.ts
-
+import type { Handler } from '@netlify/functions';
 import { generateResponse } from './geminiService';
 
-export const handler = async (event: any) => {
+export const handler: Handler = async (event) => {
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method Not Allowed' }),
+    };
+  }
+
   try {
-    if (!event.body) {
+    const { message, sessionId } = JSON.parse(event.body || '{}');
+
+    if (!message || !sessionId) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'No body provided' }),
+        body: JSON.stringify({ error: 'Missing required parameters: message and sessionId' }),
       };
     }
 
-    const parsedBody = JSON.parse(event.body);
-    const { message, sessionId } = parsedBody;
-
-    if (!message) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Message not provided in request body' }),
-      };
-    }
-
-    if (!sessionId) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Session ID not provided in request body' }),
-      };
-    }
-
-    const responseText = await generateResponse(message, sessionId);
+    const response = await generateResponse(message, sessionId);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ response: responseText }),
+      body: JSON.stringify({ response }),
     };
   } catch (error: any) {
-    console.error('Error in gemini function:', error);
+    console.error('Error in Gemini handler:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message || 'Internal Server Error' }),
