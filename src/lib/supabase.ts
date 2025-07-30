@@ -12,7 +12,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Database types
 export interface Message {
   id: string;
   name: string;
@@ -47,16 +46,15 @@ export interface ProjectView {
   created_at: string;
 }
 
-// Analytics functions
 export const trackPageView = async (pagePath: string) => {
   const visitorId = getOrCreateVisitorId();
-  
+
   try {
     await supabase.from('page_analytics').insert({
       page_path: pagePath,
       visitor_id: visitorId,
       user_agent: navigator.userAgent,
-      referrer: document.referrer || null
+      referrer: document.referrer || null,
     });
   } catch (error) {
     console.error('Error tracking page view:', error);
@@ -65,11 +63,11 @@ export const trackPageView = async (pagePath: string) => {
 
 export const trackProjectView = async (projectId: string) => {
   const visitorId = getOrCreateVisitorId();
-  
+
   try {
     await supabase.from('project_views').insert({
       project_id: projectId,
-      visitor_id: visitorId
+      visitor_id: visitorId,
     });
   } catch (error) {
     console.error('Error tracking project view:', error);
@@ -78,12 +76,8 @@ export const trackProjectView = async (projectId: string) => {
 
 export const submitContactMessage = async (messageData: Omit<Message, 'id' | 'read' | 'created_at'>) => {
   try {
-    const { data, error } = await supabase
-      .from('messages')
-      .insert(messageData)
-      .select()
-      .single();
-    
+    const { data, error } = await supabase.from('messages').insert(messageData).select().single();
+
     if (error) throw error;
     return data;
   } catch (error) {
@@ -97,14 +91,13 @@ export const saveChatConversation = async (sessionId: string, userMessage: strin
     await supabase.from('chat_conversations').insert({
       session_id: sessionId,
       user_message: userMessage,
-      ai_response: aiResponse
+      ai_response: aiResponse,
     });
   } catch (error) {
     console.error('Error saving chat conversation:', error);
   }
 };
 
-// Helper function to get or create visitor ID
 function getOrCreateVisitorId(): string {
   let visitorId = localStorage.getItem('visitor_id');
   if (!visitorId) {
