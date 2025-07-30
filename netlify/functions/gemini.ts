@@ -1,37 +1,50 @@
 import type { Handler } from '@netlify/functions';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 const handler: Handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method Not Allowed' }),
-    };
-  }
-
   try {
-    const body = JSON.parse(event.body || '{}');
-    const prompt = body.message || body.prompt;
-    const sessionId = body.sessionId || null;
-
-    if (!prompt) {
+    if (event.httpMethod !== 'POST') {
       return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Prompt is required' }),
+        statusCode: 405,
+        body: JSON.stringify({ error: 'Method Not Allowed' }),
       };
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const body = JSON.parse(event.body || '{}');
+    const prompt = body.message || body.prompt;
+    const sessionId = body.sessionId;
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+    if (!GEMINI_API_KEY) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Missing Gemini API Key' }),
+      };
+    }
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+        }),
+      }
+    );
+
+    const result = await response.json();
+
+    const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Failed to generate content from Gemini' }),
+      };
+    }
 
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         response: text,
         sessionId,
@@ -39,11 +52,9 @@ const handler: Handler = async (event) => {
     };
   } catch (error: any) {
     console.error('Gemini Function Error:', error);
-
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: error.message || 'Internal Server Error' }),
+      body: JSON.stringify({ error: error.message || 'Unknown error' }),
     };
   }
 };
