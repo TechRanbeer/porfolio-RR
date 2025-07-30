@@ -1,9 +1,9 @@
-// src/lib/supabase.ts (or wherever your client lib is)
+// src/lib/supabase.ts
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
@@ -11,6 +11,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Types
 export interface Message {
   id: string;
   name: string;
@@ -45,6 +46,7 @@ export interface ProjectView {
   created_at: string;
 }
 
+// Analytics
 export const trackPageView = async (pagePath: string) => {
   const visitorId = getOrCreateVisitorId();
 
@@ -73,9 +75,16 @@ export const trackProjectView = async (projectId: string) => {
   }
 };
 
-export const submitContactMessage = async (messageData: Omit<Message, 'id' | 'read' | 'created_at'>) => {
+// Contact Form
+export const submitContactMessage = async (
+  messageData: Omit<Message, 'id' | 'read' | 'created_at'>
+) => {
   try {
-    const { data, error } = await supabase.from('messages').insert(messageData).select().single();
+    const { data, error } = await supabase
+      .from('messages')
+      .insert(messageData)
+      .select()
+      .single();
 
     if (error) throw error;
     return data;
@@ -85,7 +94,12 @@ export const submitContactMessage = async (messageData: Omit<Message, 'id' | 're
   }
 };
 
-export const saveChatConversation = async (sessionId: string, userMessage: string, aiResponse: string) => {
+// Chat
+export const saveChatConversation = async (
+  sessionId: string,
+  userMessage: string,
+  aiResponse: string
+) => {
   try {
     await supabase.from('chat_conversations').insert({
       session_id: sessionId,
@@ -97,10 +111,12 @@ export const saveChatConversation = async (sessionId: string, userMessage: strin
   }
 };
 
+// Unique Visitor ID
 function getOrCreateVisitorId(): string {
   let visitorId = localStorage.getItem('visitor_id');
   if (!visitorId) {
-    visitorId = 'visitor_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+    visitorId =
+      'visitor_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
     localStorage.setItem('visitor_id', visitorId);
   }
   return visitorId;
