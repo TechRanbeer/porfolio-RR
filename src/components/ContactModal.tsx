@@ -98,7 +98,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
                 </div>
                 <div className="flex gap-4 mt-4">
                   <a
-                    href="https://github.com/ranbeer-raja"
+                    href="https://github.com/TechRanbeer"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 bg-slate-700/50 hover:bg-slate-600/50 p-4 rounded-xl transition-all duration-300 hover:scale-105 flex-1"
