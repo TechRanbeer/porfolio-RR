@@ -1,71 +1,39 @@
-// File: netlify/functions/geminiService.ts
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { supabaseServer } from './supabaseServer'; 
+import { Handler } from '@netlify/functions';
 
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-
-export const generateResponse = async (message: string, sessionId: string): Promise<string> => {
+const handler: Handler = async (event) => {
   try {
-    const chatHistory = await fetchChatHistory(sessionId);
+    const body = JSON.parse(event.body || '{}');
+    const prompt = body.prompt;
 
-    const chat = model.startChat({
-      history: chatHistory,
-      generationConfig: {
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 1024,
-      },
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+    if (!GEMINI_API_KEY) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Missing Gemini API Key' }),
+      };
+    }
+
+    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+      }),
     });
 
-    const result = await chat.sendMessage(message);
-    const responseText = result.response.text();
+    const result = await geminiResponse.json();
 
-    await logMessage(sessionId, message, responseText);
-
-    return responseText;
+    return {
+      statusCode: 200,
+      body: JSON.stringify(result),
+    };
   } catch (error) {
-    console.error('generateResponse error:', error);
-    return 'Sorry, there was an error processing your request.';
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+    };
   }
 };
 
-const fetchChatHistory = async (sessionId: string) => {
-  const { data, error } = await supabaseServer
-    .from('chats')
-    .select('user_message, bot_response')
-    .eq('session_id', sessionId)
-    .order('created_at', { ascending: true });
-
-  if (error) {
-    console.error('Error fetching chat history:', error);
-    return [];
-  }
-
-  return data.map((entry: any) => ({
-    role: 'user',
-    parts: [{ text: entry.user_message }],
-  })).flatMap((userEntry: any, i: number) => [
-    userEntry,
-    {
-      role: 'model',
-      parts: [{ text: data[i]?.bot_response || '' }],
-    },
-  ]);
-};
-
-const logMessage = async (sessionId: string, userMessage: string, botResponse: string) => {
-  const { error } = await supabaseServer.from('chats').insert([
-    {
-      session_id: sessionId,
-      user_message: userMessage,
-      bot_response: botResponse,
-    },
-  ]);
-
-  if (error) {
-    console.error('Error logging message:', error);
-  }
-};
+export { handler };
