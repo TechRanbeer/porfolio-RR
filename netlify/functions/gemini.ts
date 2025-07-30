@@ -1,67 +1,48 @@
-import type { Handler } from '@netlify/functions';
+// netlify/functions/gemini.ts
+import { Handler } from '@netlify/functions';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 const handler: Handler = async (event) => {
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method Not Allowed' }),
+    };
+  }
+
   try {
-    if (event.httpMethod !== 'POST') {
-      return {
-        statusCode: 405,
-        body: JSON.stringify({ error: 'Method Not Allowed' }),
-      };
-    }
-
     const body = JSON.parse(event.body || '{}');
-    const prompt = body.message || body.prompt;
-    const sessionId = body.sessionId;
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    const message = body.message;
 
-    if (!GEMINI_API_KEY) {
+    if (!message) {
       return {
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Missing Gemini API Key' }),
+        statusCode: 400,
+        body: JSON.stringify({ error: 'No message provided' }),
       };
     }
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-        }),
-      }
-    );
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
-    const result = await response.json();
-
-    // Extract the AI response safely
-    const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!text) {
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Failed to generate content from Gemini' }),
-      };
-    }
+    const result = await model.generateContent(message);
+    const response = await result.response;
+    const text = response.text();
 
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        response: text,
-        sessionId,
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ response: text }),
     };
   } catch (error: any) {
-    console.error('Gemini Function Error:', error);
+    console.error('Gemini API Error:', error);
+
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message || 'Unknown error' }),
-      statusCode: 200,
-  body: JSON.stringify({
-    response: result,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: 'Internal Server Error', details: error.message }),
     };
   }
 };
 
 export { handler };
-
