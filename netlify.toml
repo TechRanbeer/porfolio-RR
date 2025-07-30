@@ -6,10 +6,14 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
 [functions]
   node_bundler = "esbuild"
-  included_files = ["./src/**", "./supabase/**"] # IMPORTANT: Include relevant root-level folders
-  external_node_modules = ["@google/generative-ai", "@supabase/supabase-js"] # Add any other large npm modules your functions use
+  included_files = ["./src/**", "./supabase/**"] # include relevant source folders
+  external_node_modules = ["@google/generative-ai", "@supabase/supabase-js", "node-fetch"]
 
-  [functions."*"] # Apply ESM format to all functions
+  [functions."*"]
     node_module_format = "esm"
+
+[build.environment]
+  NODE_VERSION = "18"
