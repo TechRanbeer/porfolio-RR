@@ -1,7 +1,7 @@
-// netlify/functions/geminiService.ts
+// File: netlify/functions/geminiService.ts
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { saveChatConversation } from '../../src/lib/supabase'; // Verify this path
+import { saveChatConversation } from '../../src/lib/supabase';
 
 const API_KEY = process.env.GEMINI_API_KEY;
 
@@ -46,12 +46,10 @@ export async function generateResponse(userMessage: string, sessionId: string): 
 
     console.log(`AI response: ${responseText}`);
 
-    // Save conversation to Supabase with error handling
     try {
       await saveChatConversation(sessionId, userMessage, responseText);
     } catch (supabaseError) {
       console.error('Failed to save chat conversation:', supabaseError);
-      // optionally don't throw here so the user still gets AI response
     }
 
     return responseText;
