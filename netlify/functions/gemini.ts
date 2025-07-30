@@ -1,35 +1,30 @@
 import type { Handler } from '@netlify/functions';
-import { generateResponse } from './geminiService';
+import { createClient } from '@supabase/supabase-js';
 
-export const handler: Handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method Not Allowed' }),
-    };
-  }
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const geminiApiKey = process.env.GEMINI_API_KEY;
 
+if (!supabaseUrl || !supabaseServiceRoleKey || !geminiApiKey) {
+  throw new Error("Missing one or more required environment variables: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, GEMINI_API_KEY");
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+
+export const handler: Handler = async (event, context) => {
   try {
-    const { message, sessionId } = JSON.parse(event.body || '{}');
-
-    if (!message || !sessionId) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Missing required parameters: message and sessionId' }),
-      };
-    }
-
-    const response = await generateResponse(message, sessionId);
-
+    // Your custom function logic here, e.g., querying Supabase or calling Gemini API
+    
+    // Example: just return a success message for demo
     return {
       statusCode: 200,
-      body: JSON.stringify({ response }),
+      body: JSON.stringify({ message: "Gemini function executed successfully" }),
     };
   } catch (error: any) {
-    console.error('Error in Gemini handler:', error);
+    console.error("Function error:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message || 'Internal Server Error' }),
+      body: JSON.stringify({ error: error.message || "Internal server error" }),
     };
   }
 };
