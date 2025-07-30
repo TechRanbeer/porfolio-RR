@@ -10,10 +10,21 @@ interface Message {
 }
 
 const ChatPage: React.FC = () => {
+  // Initialize or retrieve session ID from localStorage
+  const [sessionId] = React.useState(() => {
+    let storedId = localStorage.getItem('chat_session_id');
+    if (!storedId) {
+      storedId = 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+      localStorage.setItem('chat_session_id', storedId);
+    }
+    return storedId;
+  });
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Welcome to my AI-powered chat! I'm an AI trained on Ranbeer's expertise, experience, and personality. I can discuss his projects, technical skills, career journey, and answer any questions you might have about working with him. How can I help you today?",
+      content:
+        "Welcome to my AI-powered chat! I'm an AI trained on Ranbeer's expertise, experience, and personality. I can discuss his projects, technical skills, career journey, and answer any questions you might have about working with him. How can I help you today?",
       isUser: false,
       timestamp: new Date(),
     },
@@ -49,14 +60,15 @@ const ChatPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      console.log('Sending message to backend:', inputValue); // Debugging log
+      console.log('Sending message to backend:', inputValue);
 
       const response = await fetch('/.netlify/functions/gemini', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: inputValue }),
+        // Send sessionId along with message
+        body: JSON.stringify({ message: inputValue, sessionId }),
       });
 
       if (!response.ok) {
@@ -64,7 +76,7 @@ const ChatPage: React.FC = () => {
       }
 
       const data = await response.json();
-      console.log('AI response received:', data.response); // Debugging log
+      console.log('AI response received:', data.response);
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -111,7 +123,11 @@ const ChatPage: React.FC = () => {
       <div className="relative z-10 border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-md">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button onClick={() => window.history.back()} className="text-slate-400 hover:text-white transition-colors duration-300">
+            <button
+              onClick={() => window.history.back()}
+              className="text-slate-400 hover:text-white transition-colors duration-300"
+              aria-label="Go back"
+            >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-3">
@@ -153,6 +169,7 @@ const ChatPage: React.FC = () => {
                     key={index}
                     onClick={() => setInputValue(question)}
                     className="text-left p-4 bg-slate-800/30 hover:bg-slate-700/30 border border-slate-700/50 hover:border-slate-600 rounded-xl transition-all duration-300 hover:scale-[1.02]"
+                    type="button"
                   >
                     <div className="flex items-start gap-3">
                       <MessageCircle className="w-4 h-4 text-purple-400 mt-1 flex-shrink-0" />
@@ -167,14 +184,24 @@ const ChatPage: React.FC = () => {
           {messages.map((message) => (
             <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
               <div className={`flex items-start gap-4 max-w-[85%] ${message.isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'bg-slate-700'}`}>
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    message.isUser ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'bg-slate-700'
+                  }`}
+                >
                   {message.isUser ? (
                     <User className="w-5 h-5 text-white" />
                   ) : (
                     <Bot className="w-5 h-5 text-slate-300" />
                   )}
                 </div>
-                <div className={`p-4 rounded-2xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-slate-800/50 text-slate-200 border border-slate-700/50'}`}>
+                <div
+                  className={`p-4 rounded-2xl ${
+                    message.isUser
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                      : 'bg-slate-800/50 text-slate-200 border border-slate-700/50'
+                  }`}
+                >
                   <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
                 </div>
               </div>
@@ -218,6 +245,7 @@ const ChatPage: React.FC = () => {
               onClick={sendMessage}
               disabled={!inputValue.trim() || isLoading}
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-4 rounded-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
+              type="button"
             >
               <Send className="w-5 h-5 text-white" />
               <span className="hidden sm:inline text-white font-medium">Send</span>
