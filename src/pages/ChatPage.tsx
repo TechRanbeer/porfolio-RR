@@ -1,39 +1,33 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, ArrowLeft, Sparkles, MessageCircle, Zap } from 'lucide-react';
-import { trackPageView } from '../../src/lib/supabase';
+import React, { useState, useEffect, useRef } from 'react';
+import { Send } from 'lucide-react';
 
 interface Message {
   id: string;
-  text: string; // 👈 Changed from 'content' to 'text' to match Gemini response structure
+  text: string;
   isUser: boolean;
   timestamp: Date;
 }
 
-const ChatPage: React.FC = () => {
-  const [sessionId] = useState(() => {
-    let storedId = localStorage.getItem('chat_session_id');
-    if (!storedId) {
-      storedId = 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-      localStorage.setItem('chat_session_id', storedId);
-    }
-    return storedId;
-  });
-
+const ChatPage = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text:
-        "Welcome to my AI-powered chat! I'm an AI trained on Ranbeer's expertise, experience, and personality. I can discuss his projects, technical skills, career journey, and answer any questions you might have about working with him. How can I help you today?",
+      text: "Hi! I'm Ranbeer's AI assistant. I can answer questions about his background, projects, and expertise. What would you like to know?",
       isUser: false,
       timestamp: new Date(),
     },
   ]);
-  const [inputValue, setInputValue] = useState('');
+  const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    trackPageView('/chat');
+  const sessionId = React.useMemo(() => {
+    let id = localStorage.getItem('chat_session_id');
+    if (!id) {
+      id = 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+      localStorage.setItem('chat_session_id', id);
+    }
+    return id;
   }, []);
 
   const scrollToBottom = () => {
@@ -45,204 +39,116 @@ const ChatPage: React.FC = () => {
   }, [messages]);
 
   const sendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return;
+    if (!inputMessage.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputValue,
+      text: inputMessage,
       isUser: true,
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue('');
+    setInputMessage('');
     setIsLoading(true);
 
     try {
       const response = await fetch('/.netlify/functions/gemini', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: inputValue, sessionId }), // ✅ matches expected shape
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: inputMessage, sessionId }),
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch response from server');
-      }
 
       const data = await response.json();
 
+      const aiText =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        '⚠️ Gemini did not return a valid response.';
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.response, // ✅ use `text` instead of `content`
+        text: aiText,
         isUser: false,
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, aiMessage]);
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         text:
-          "I'm having trouble connecting right now. Please try again in a moment, or feel free to contact Ranbeer directly through the contact form.",
+          "I'm having trouble connecting right now. Please try again or contact Ranbeer directly at ranbeerraja1@gmail.com",
         isUser: false,
         timestamp: new Date(),
       };
+      console.error('Gemini API error:', error);
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
   };
 
-  const suggestedQuestions = [
-    "Tell me about Ranbeer's experience with ARM microcontrollers",
-    "What makes Ranbeer unique as an engineer?",
-    "Can you describe his most challenging project?",
-    "How does he approach embedded systems design?",
-    "What's his experience with industrial IoT?",
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(120,119,198,0.15),transparent_50%),radial-gradient(circle_at_80%_80%,rgba(255,119,198,0.15),transparent_50%)] pointer-events-none"></div>
-
-      <div className="relative z-10 border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-md">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => window.history.back()}
-              className="text-slate-400 hover:text-white transition-colors duration-300"
-              aria-label="Go back"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
-                <Bot className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold">Chat with Ranbeer's AI</h1>
-                <p className="text-sm text-slate-400 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  Powered by advanced AI • Always available
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-slate-400">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            Online
-          </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-md bg-white shadow-lg rounded-lg flex flex-col h-[36rem]">
+        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-3 rounded-t-lg font-semibold">
+          Ranbeer's AI Assistant
         </div>
-      </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto h-[calc(100vh-80px)] flex flex-col">
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {messages.length === 1 && (
-            <div className="mb-8">
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-full px-4 py-2 mb-4">
-                  <Zap className="w-4 h-4 text-purple-400" />
-                  <span className="text-sm text-purple-300">AI-Powered Assistant</span>
-                </div>
-                <h2 className="text-2xl font-bold mb-2">Ask me anything about Ranbeer!</h2>
-                <p className="text-slate-400">I can discuss his projects, skills, experience, and more</p>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-3">
-                {suggestedQuestions.map((question, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setInputValue(question)}
-                    className="text-left p-4 bg-slate-800/30 hover:bg-slate-700/30 border border-slate-700/50 hover:border-slate-600 rounded-xl transition-all duration-300 hover:scale-[1.02]"
-                    type="button"
-                  >
-                    <div className="flex items-start gap-3">
-                      <MessageCircle className="w-4 h-4 text-purple-400 mt-1 flex-shrink-0" />
-                      <span className="text-sm text-slate-300">{question}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
           {messages.map((message) => (
-            <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
-              <div className={`flex items-start gap-4 max-w-[85%] ${message.isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    message.isUser ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'bg-slate-700'
-                  }`}
-                >
-                  {message.isUser ? (
-                    <User className="w-5 h-5 text-white" />
-                  ) : (
-                    <Bot className="w-5 h-5 text-slate-300" />
-                  )}
-                </div>
-                <div
-                  className={`p-4 rounded-2xl ${
-                    message.isUser
-                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                      : 'bg-slate-800/50 text-slate-200 border border-slate-700/50'
-                  }`}
-                >
-                  <p className="leading-relaxed whitespace-pre-wrap">{message.text}</p>
-                </div>
+            <div
+              key={message.id}
+              className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-[80%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap ${
+                  message.isUser
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                    : 'bg-gray-100 text-gray-900'
+                }`}
+              >
+                {message.text}
               </div>
             </div>
           ))}
-
           {isLoading && (
             <div className="flex justify-start">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-slate-300" />
-                </div>
-                <div className="bg-slate-800/50 border border-slate-700/50 p-4 rounded-2xl">
-                  <div className="flex items-center gap-2">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    </div>
-                    <span className="text-sm text-slate-400 ml-2">Thinking...</span>
-                  </div>
-                </div>
+              <div className="bg-gray-100 px-4 py-2 rounded-lg text-sm text-gray-600 flex space-x-2">
+                <span>Typing</span>
+                <span className="animate-bounce">.</span>
+                <span className="animate-bounce delay-100">.</span>
+                <span className="animate-bounce delay-200">.</span>
               </div>
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="p-6 border-t border-slate-700/50 bg-slate-900/50 backdrop-blur-md">
-          <div className="flex gap-4">
+        <div className="p-3 border-t border-gray-200">
+          <div className="flex space-x-2">
             <input
               type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask me anything about Ranbeer's experience, projects, or skills..."
-              className="flex-1 bg-slate-800/50 border border-slate-700 rounded-xl px-6 py-4 text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
               disabled={isLoading}
+              placeholder="Ask me anything about Ranbeer..."
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
             <button
               onClick={sendMessage}
-              disabled={!inputValue.trim() || isLoading}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-4 rounded-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
-              type="button"
+              disabled={!inputMessage.trim() || isLoading}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Send className="w-5 h-5 text-white" />
-              <span className="hidden sm:inline text-white font-medium">Send</span>
+              <Send className="w-4 h-4" />
             </button>
           </div>
         </div>
