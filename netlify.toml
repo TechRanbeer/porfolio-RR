@@ -2,18 +2,26 @@
   command = "npm run build"
   publish = "dist"
 
+  [build.environment]
+    NODE_VERSION = "18"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
 [functions]
+  directory = "netlify/functions"
   node_bundler = "esbuild"
-  included_files = ["./src/**", "./supabase/**"] # include relevant source folders
-  external_node_modules = ["@google/generative-ai", "@supabase/supabase-js", "node-fetch"]
+  included_files = [
+    "./src/**",
+    "./supabase/**"
+  ]
+  external_node_modules = [
+    "@google/generative-ai",
+    "@supabase/supabase-js",
+    "node-fetch"
+  ]
 
   [functions."*"]
     node_module_format = "esm"
-
-[build.environment]
-  NODE_VERSION = "18"
