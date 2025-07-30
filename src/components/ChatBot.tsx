@@ -14,6 +14,16 @@ interface ChatBotProps {
 }
 
 export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
+  // Generate or get session ID from localStorage
+  const [sessionId] = React.useState(() => {
+    let id = localStorage.getItem('chat_session_id');
+    if (!id) {
+      id = 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+      localStorage.setItem('chat_session_id', id);
+    }
+    return id;
+  });
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -25,16 +35,6 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Persist sessionId in localStorage
-  const [sessionId, setSessionId] = React.useState(() => {
-    let id = localStorage.getItem('chat_session_id');
-    if (!id) {
-      id = 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-      localStorage.setItem('chat_session_id', id);
-    }
-    return id;
-  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -59,7 +59,6 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
     setIsLoading(true);
 
     try {
-      // Send message + sessionId to backend
       const response = await fetch('/.netlify/functions/gemini', {
         method: 'POST',
         headers: {
