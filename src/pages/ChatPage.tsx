@@ -1,264 +1,80 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, ArrowLeft, Sparkles, MessageCircle, Zap } from 'lucide-react';
-import { trackPageView } from '../../src/lib/supabase';
+import React, { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface Message {
-  id: string;
-  text: string;
-  isUser: boolean;
-  timestamp: Date;
+  role: 'user' | 'bot';
+  content: string;
 }
 
-const ChatPage: React.FC = () => {
-  const [sessionId] = useState(() => {
-    let storedId = localStorage.getItem('chat_session_id');
-    if (!storedId) {
-      storedId = 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-      localStorage.setItem('chat_session_id', storedId);
-    }
-    return storedId;
-  });
+interface ChatPageProps {
+  fetchGeminiData: (message: string) => Promise<string>;
+}
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text:
-        "Welcome to my AI-powered chat! I'm an AI trained on Ranbeer's expertise, experience, and personality. I can discuss his projects, technical skills, career journey, and answer any questions you might have about working with him. How can I help you today?",
-      isUser: false,
-      timestamp: new Date(),
-    },
-  ]);
-  const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+const ChatPage: React.FC<ChatPageProps> = ({ fetchGeminiData }) => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    trackPageView('/chat');
-  }, []);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+    if (!input.trim()) return;
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const sendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: inputValue,
-      isUser: true,
-      timestamp: new Date(),
-    };
-
+    const userMessage: Message = { role: 'user', content: input.trim() };
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue('');
-    setIsLoading(true);
+    setInput('');
+    setLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch('/.netlify/functions/gemini', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: inputValue, sessionId }),
-      });
-
-      // 🌐 Check for non-OK response
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Gemini function error:', errorText);
-        throw new Error('Function failed');
-      }
-
-      // 🧪 Check content type
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text();
-        console.error('Expected JSON but got:', text);
-        throw new Error('Invalid JSON from Gemini');
-      }
-
-      const data = await response.json();
-
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: data.response || 'Sorry, I could not generate a response.',
-        isUser: false,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, aiMessage]);
-    } catch (error) {
-      console.error('Error fetching Gemini data:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text:
-          "I'm having trouble connecting right now. Please try again in a moment, or feel free to contact Ranbeer directly through the contact form.",
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      const botResponse = await fetchGeminiData(userMessage.content);
+      const botMessage: Message = { role: 'bot', content: botResponse };
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (err: any) {
+      console.error('Error fetching Gemini data:', err);
+      setError('Something went wrong while talking to Gemini.');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
-
-  const suggestedQuestions = [
-    "Tell me about Ranbeer's experience with ARM microcontrollers",
-    "What makes Ranbeer unique as an engineer?",
-    "Can you describe his most challenging project?",
-    "How does he approach embedded systems design?",
-    "What's his experience with industrial IoT?",
-  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(120,119,198,0.15),transparent_50%),radial-gradient(circle_at_80%_80%,rgba(255,119,198,0.15),transparent_50%)] pointer-events-none"></div>
-
-      <div className="relative z-10 border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-md">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => window.history.back()}
-              className="text-slate-400 hover:text-white transition-colors duration-300"
-              aria-label="Go back"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
-                <Bot className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold">Chat with Ranbeer's AI</h1>
-                <p className="text-sm text-slate-400 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  Powered by advanced AI • Always available
-                </p>
-              </div>
-            </div>
+    <div className="p-4 max-w-3xl mx-auto">
+      <div className="h-[70vh] overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg p-4 mb-4 space-y-3 bg-white dark:bg-zinc-900 shadow">
+        {messages.map((msg, idx) => (
+          <div
+            key={idx}
+            className={`whitespace-pre-wrap px-4 py-2 rounded-lg ${
+              msg.role === 'user'
+                ? 'bg-blue-100 dark:bg-blue-900 text-left'
+                : 'bg-green-100 dark:bg-green-900 text-left'
+            }`}
+          >
+            <strong>{msg.role === 'user' ? 'You' : 'Gemini'}:</strong> {msg.content}
           </div>
-          <div className="flex items-center gap-2 text-sm text-slate-400">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            Online
-          </div>
-        </div>
+        ))}
+        {loading && (
+          <div className="text-sm text-zinc-500 italic">Gemini is typing...</div>
+        )}
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto h-[calc(100vh-80px)] flex flex-col">
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {messages.length === 1 && (
-            <div className="mb-8">
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-full px-4 py-2 mb-4">
-                  <Zap className="w-4 h-4 text-purple-400" />
-                  <span className="text-sm text-purple-300">AI-Powered Assistant</span>
-                </div>
-                <h2 className="text-2xl font-bold mb-2">Ask me anything about Ranbeer!</h2>
-                <p className="text-slate-400">I can discuss his projects, skills, experience, and more</p>
-              </div>
+      {error && <div className="text-red-600 mb-3">{error}</div>}
 
-              <div className="grid md:grid-cols-2 gap-3">
-                {suggestedQuestions.map((question, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setInputValue(question)}
-                    className="text-left p-4 bg-slate-800/30 hover:bg-slate-700/30 border border-slate-700/50 hover:border-slate-600 rounded-xl transition-all duration-300 hover:scale-[1.02]"
-                    type="button"
-                  >
-                    <div className="flex items-start gap-3">
-                      <MessageCircle className="w-4 h-4 text-purple-400 mt-1 flex-shrink-0" />
-                      <span className="text-sm text-slate-300">{question}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {messages.map((message) => (
-            <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
-              <div className={`flex items-start gap-4 max-w-[85%] ${message.isUser ? 'flex-row-reverse' : ''}`}>
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    message.isUser ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'bg-slate-700'
-                  }`}
-                >
-                  {message.isUser ? (
-                    <User className="w-5 h-5 text-white" />
-                  ) : (
-                    <Bot className="w-5 h-5 text-slate-300" />
-                  )}
-                </div>
-                <div
-                  className={`p-4 rounded-2xl ${
-                    message.isUser
-                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                      : 'bg-slate-800/50 text-slate-200 border border-slate-700/50'
-                  }`}
-                >
-                  <p className="leading-relaxed whitespace-pre-wrap">{message.text}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-slate-300" />
-                </div>
-                <div className="bg-slate-800/50 border border-slate-700/50 p-4 rounded-2xl">
-                  <div className="flex items-center gap-2">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    </div>
-                    <span className="text-sm text-slate-400 ml-2">Thinking...</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        <div className="p-6 border-t border-slate-700/50 bg-slate-900/50 backdrop-blur-md">
-          <div className="flex gap-4">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask me anything about Ranbeer's experience, projects, or skills..."
-              className="flex-1 bg-slate-800/50 border border-slate-700 rounded-xl px-6 py-4 text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
-              disabled={isLoading}
-            />
-            <button
-              onClick={sendMessage}
-              disabled={!inputValue.trim() || isLoading}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-4 rounded-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
-              type="button"
-            >
-              <Send className="w-5 h-5 text-white" />
-              <span className="hidden sm:inline text-white font-medium">Send</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <Input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Ask something..."
+          className="flex-1"
+          disabled={loading}
+        />
+        <Button type="submit" disabled={loading}>
+          Send
+        </Button>
+      </form>
     </div>
   );
 };
