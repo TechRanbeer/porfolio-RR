@@ -1,8 +1,8 @@
-// netlify/functions/gemini.ts
-import { Handler } from '@netlify/functions';
+import type { Handler } from '@netlify/functions';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 const handler: Handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -14,33 +14,36 @@ const handler: Handler = async (event) => {
 
   try {
     const body = JSON.parse(event.body || '{}');
-    const message = body.message;
+    const prompt = body.message || body.prompt;
+    const sessionId = body.sessionId || null;
 
-    if (!message) {
+    if (!prompt) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'No message provided' }),
+        body: JSON.stringify({ error: 'Prompt is required' }),
       };
     }
 
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-
-    const result = await model.generateContent(message);
+    const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
 
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ response: text }),
+      body: JSON.stringify({
+        response: text,
+        sessionId,
+      }),
     };
   } catch (error: any) {
-    console.error('Gemini API Error:', error);
+    console.error('Gemini Function Error:', error);
 
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Internal Server Error', details: error.message }),
+      body: JSON.stringify({ error: error.message || 'Internal Server Error' }),
     };
   }
 };
