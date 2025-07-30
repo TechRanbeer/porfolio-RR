@@ -1,13 +1,13 @@
 // netlify/functions/gemini.ts
 
-import { generateResponse } from './geminiService'; // Correct import for functions directory
+import { generateResponse } from './geminiService';
 
 export const handler = async (event: any, context: any) => {
-  console.log('Received request to generate response'); // Debugging log
+  console.log('Received request to generate response');
+
   try {
-    // Check if body exists and is properly formatted
     if (!event.body) {
-      console.log('Error: No body provided'); // Debugging log
+      console.log('Error: No body provided');
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'No body provided' }),
@@ -15,29 +15,29 @@ export const handler = async (event: any, context: any) => {
     }
 
     const parsedBody = JSON.parse(event.body);
-    console.log('Parsed Body:', parsedBody); // Debugging log
-    
-    if (!parsedBody.message) {
-      console.log('Error: Message not provided in request body'); // Debugging log
+    console.log('Parsed Body:', parsedBody);
+
+    const { message, sessionId } = parsedBody;
+
+    if (!message) {
+      console.log('Error: Message not provided in request body');
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'Message not provided in request body' }),
       };
     }
 
-    const userMessage = parsedBody.message;
+    // Pass sessionId to the generateResponse function
+    const responseText = await generateResponse(message, sessionId);
 
-    // Call the AI service to get the response
-    const responseText = await generateResponse(userMessage);
-
-    console.log('Generated AI Response:', responseText); // Debugging log
+    console.log('Generated AI Response:', responseText);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ response: responseText }), // Return the AI's response
+      body: JSON.stringify({ response: responseText }),
     };
   } catch (error) {
-    console.error('Error in gemini function:', error); // Debugging log
+    console.error('Error in gemini function:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message || 'Internal Server Error' }),
