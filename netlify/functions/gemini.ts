@@ -1,11 +1,17 @@
-// ✅ Do NOT import 'node-fetch' or any other fetch library
-
-import { Handler } from '@netlify/functions';
+import type { Handler } from '@netlify/functions';
 
 const handler: Handler = async (event) => {
   try {
+    if (event.httpMethod !== 'POST') {
+      return {
+        statusCode: 405,
+        body: JSON.stringify({ error: 'Method Not Allowed' }),
+      };
+    }
+
     const body = JSON.parse(event.body || '{}');
     const prompt = body.message || body.prompt;
+    const sessionId = body.sessionId;
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
     if (!GEMINI_API_KEY) {
@@ -28,11 +34,25 @@ const handler: Handler = async (event) => {
 
     const result = await response.json();
 
+    // Extract the AI response safely
+    const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Failed to generate content from Gemini' }),
+      };
+    }
+
     return {
       statusCode: 200,
-      body: JSON.stringify(result),
+      body: JSON.stringify({
+        response: text,
+        sessionId,
+      }),
     };
   } catch (error: any) {
+    console.error('Gemini Function Error:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message || 'Unknown error' }),
