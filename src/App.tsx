@@ -19,6 +19,19 @@ function App() {
     'ARM chips Researcher'
   ];
 
+  const response = await fetch('/.netlify/functions/gemini', {
+  method: 'POST',
+  body: JSON.stringify({ prompt }),
+});
+
+const contentType = response.headers.get('content-type');
+if (!contentType?.includes('application/json')) {
+  throw new Error('Invalid response: Not JSON');
+}
+
+const data = await response.json();
+
+
   useEffect(() => {
     trackPageView(window.location.pathname);
     const handleScroll = () => setScrollY(window.scrollY);
