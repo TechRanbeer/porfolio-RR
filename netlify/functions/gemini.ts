@@ -1,43 +1,33 @@
 // netlify/functions/gemini.ts
 
-import { Handler } from '@netlify/functions';
-import { createClient } from '@supabase/supabase-js';
-import { generateResponse } from './geminiService';  // Import from the same folder
+import { generateResponse } from './geminiService'; // Adjusted relative path based on your structure
 
-// Backend env vars (without VITE_ prefix)
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const geminiApiKey = process.env.GEMINI_API_KEY!;
-
-if (!supabaseUrl || !supabaseServiceRoleKey || !geminiApiKey) {
-  throw new Error('Missing SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, or GEMINI_API_KEY environment variables');
-}
-
-// Create supabase client for server side
-const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
-
-export const handler: Handler = async (event, context) => {
+export const handler = async (event: any) => {
   try {
     if (!event.body) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'No body provided' }),
+        body: JSON.stringify({ error: 'No request body provided' }),
       };
     }
 
-    const parsedBody = JSON.parse(event.body);
+    const { message, sessionId } = JSON.parse(event.body);
 
-    if (!parsedBody.message) {
+    if (!message) {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'Message not provided in request body' }),
       };
     }
 
-    const userMessage = parsedBody.message;
+    if (!sessionId) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Session ID not provided in request body' }),
+      };
+    }
 
-    // Pass geminiApiKey if your service needs it
-    const responseText = await generateResponse(userMessage, geminiApiKey);
+    const responseText = await generateResponse(message, sessionId);
 
     return {
       statusCode: 200,
