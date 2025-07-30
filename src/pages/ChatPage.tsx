@@ -67,21 +67,33 @@ const ChatPage: React.FC = () => {
         body: JSON.stringify({ message: inputValue, sessionId }),
       });
 
+      // 🌐 Check for non-OK response
       if (!response.ok) {
-        throw new Error('Failed to fetch response from server');
+        const errorText = await response.text();
+        console.error('Gemini function error:', errorText);
+        throw new Error('Function failed');
+      }
+
+      // 🧪 Check content type
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('Expected JSON but got:', text);
+        throw new Error('Invalid JSON from Gemini');
       }
 
       const data = await response.json();
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.response,
+        text: data.response || 'Sorry, I could not generate a response.',
         isUser: false,
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
+      console.error('Error fetching Gemini data:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         text:
