@@ -67,19 +67,10 @@ const ChatPage: React.FC = () => {
         body: JSON.stringify({ message: inputValue, sessionId }),
       });
 
-      // 🌐 Check for non-OK response
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Gemini function error:', errorText);
-        throw new Error('Function failed');
-      }
-
-      // 🧪 Check content type
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text();
-        console.error('Expected JSON but got:', text);
-        throw new Error('Invalid JSON from Gemini');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Gemini function error:', errorData);
+        throw new Error(errorData.error || 'Failed to get response');
       }
 
       const data = await response.json();
@@ -97,7 +88,7 @@ const ChatPage: React.FC = () => {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         text:
-          "I'm having trouble connecting right now. Please try again in a moment, or feel free to contact Ranbeer directly through the contact form.",
+          `I'm having trouble connecting right now: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again in a moment, or feel free to contact Ranbeer directly through the contact form.`,
         isUser: false,
         timestamp: new Date(),
       };
