@@ -67,17 +67,28 @@ const ChatPage: React.FC = () => {
         body: JSON.stringify({ message: inputValue, sessionId }),
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        const errorText = await response.text();
+        console.error('Response not ok:', response.status, errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: `HTTP ${response.status}: ${errorText}` };
+        }
         console.error('Gemini function error:', errorData);
         throw new Error(errorData.error || 'Failed to get response');
       }
 
       const data = await response.json();
+      console.log('Gemini response data:', data);
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.response || 'Sorry, I could not generate a response.',
+        text: data.response || data.text || 'Sorry, I could not generate a response.',
         isUser: false,
         timestamp: new Date(),
       };
@@ -88,7 +99,7 @@ const ChatPage: React.FC = () => {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         text:
-          `I'm having trouble connecting right now: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again in a moment, or feel free to contact Ranbeer directly through the contact form.`,
+          `I'm having trouble connecting right now. ${error instanceof Error ? error.message : 'Unknown error'}. Please try again in a moment, or feel free to contact Ranbeer directly through the contact form.`,
         isUser: false,
         timestamp: new Date(),
       };

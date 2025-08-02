@@ -27,11 +27,15 @@ const handler: Handler = async (event) => {
   }
 
   try {
-    const supabaseUrl = process.env.VITE_SUPABASE_URL;
-    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      console.error('Missing Supabase environment variables');
+      console.error('Missing Supabase environment variables:', { 
+        hasUrl: !!supabaseUrl, 
+        hasKey: !!supabaseKey,
+        envKeys: Object.keys(process.env).filter(key => key.includes('SUPABASE'))
+      });
       return {
         statusCode: 500,
         headers: {
@@ -41,6 +45,8 @@ const handler: Handler = async (event) => {
         body: JSON.stringify({ error: 'Server configuration error' }),
       };
     }
+
+    console.log('Creating Supabase client with URL:', supabaseUrl.substring(0, 20) + '...');
 
     const supabase = createClient(supabaseUrl, supabaseKey);
     const body = JSON.parse(event.body || '{}');
@@ -58,6 +64,8 @@ const handler: Handler = async (event) => {
       };
     }
 
+    console.log('Attempting to insert message for:', email);
+
     const { data, error } = await supabase
       .from('messages')
       .insert({
@@ -71,7 +79,7 @@ const handler: Handler = async (event) => {
       .single();
 
     if (error) {
-      console.error('Supabase error:', error);
+      console.error('Supabase insert error:', error);
       return {
         statusCode: 500,
         headers: {
@@ -81,6 +89,8 @@ const handler: Handler = async (event) => {
         body: JSON.stringify({ error: 'Failed to save message' }),
       };
     }
+
+    console.log('Message saved successfully:', data?.id);
 
     return {
       statusCode: 200,

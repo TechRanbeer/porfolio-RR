@@ -1,15 +1,69 @@
 import type { Handler } from '@netlify/functions';
 
-// System prompt for Ranbeer's AI assistant
-const SYSTEM_PROMPT = `You are Ranbeer Raja, a passionate mechanical engineer with deep expertise in embedded systems and Raspberry Pi development. You speak in first person as Ranbeer himself.
+const handler: Handler = async (event) => {
+  // Handle CORS preflight
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+      },
+      body: ''
+    };
+  }
+
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ error: 'Method Not Allowed' }),
+    };
+  }
+
+  try {
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+    if (!GEMINI_API_KEY) {
+      console.error('Missing GEMINI_API_KEY environment variable');
+      return {
+        statusCode: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ error: 'Server configuration error - missing API key' }),
+      };
+    }
+
+    const body = JSON.parse(event.body || '{}');
+    const userMessage = body.message || body.prompt;
+
+    if (!userMessage) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ error: 'Message is required' }),
+      };
+    }
+
+    // System prompt for Ranbeer's AI assistant
+    const systemPrompt = `You are Ranbeer Raja, a passionate mechanical engineer with deep expertise in embedded systems and Raspberry Pi development. You speak in first person as Ranbeer himself.
 
 Key Information About You:
 - Mechanical Engineer specializing in embedded systems and ARM microcontrollers
 - Expert in Raspberry Pi development and IoT solutions
 - Proficient in C/C++, Python, Java, and embedded programming
 - Experience with Docker, Linux systems, and server administration
-- Built a Raspberry Pi 5 NAS server with CasaOS, Tailscale VPN, and NVMe storage
-- Created a Java-based inventory management system with MySQL
+- Built a Raspberry Pi 5 NAS server with CasaOS, Tailscale VPN, and NVMe storage (2025)
+- Created a Java-based inventory management system with MySQL (2024)
 - Karate black belt and former instructor for 6 months
 - Enjoys basketball, chess, football, and has horse riding experience
 - Student at KJ Somaiya College
@@ -33,95 +87,67 @@ Personality: Professional yet approachable, passionate about technology, always 
 
 Always respond as Ranbeer in first person, sharing insights about your projects, experience, and expertise. Be helpful, engaging, and showcase your technical knowledge while maintaining a friendly tone.`;
 
-const handler: Handler = async (event) => {
-  try {
-    if (event.httpMethod !== 'POST') {
-      return {
-        statusCode: 405,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'Content-Type',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS'
-        },
-        body: JSON.stringify({ error: 'Method Not Allowed' }),
-      };
-    }
+    const fullPrompt = `${systemPrompt}\n\nUser: ${userMessage}\n\nRanbeer:`;
 
-    // Handle CORS preflight
-    if (event.httpMethod === 'OPTIONS') {
-      return {
-        statusCode: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'Content-Type',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS'
-        },
-        body: ''
-      };
-    }
-
-    const body = JSON.parse(event.body || '{}');
-    const prompt = body.message || body.prompt;
-    const sessionId = body.sessionId;
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
-    if (!GEMINI_API_KEY) {
-      console.error('Missing GEMINI_API_KEY environment variable');
-      return {
-        statusCode: 500,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ error: 'Missing Gemini API Key' }),
-      };
-    }
-
-    if (!prompt) {
-      return {
-        statusCode: 400,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ error: 'Message is required' }),
-      };
-    }
-
-    // Combine system prompt with user message
-    const fullPrompt = `${SYSTEM_PROMPT}\n\nUser: ${prompt}\n\nRanbeer:`;
+    console.log('Making request to Gemini API...');
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: fullPrompt }] }],
+          contents: [{ 
+            parts: [{ text: fullPrompt }] 
+          }],
           generationConfig: {
             temperature: 0.7,
             topP: 0.8,
             topK: 40,
             maxOutputTokens: 1024,
-          }
+          },
+          safetySettings: [
+            {
+              category: "HARM_CATEGORY_HARASSMENT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+              category: "HARM_CATEGORY_HATE_SPEECH",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            }
+          ]
         }),
       }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', errorText);
+      console.error('Gemini API error:', response.status, errorText);
       return {
         statusCode: 500,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ error: 'Failed to get response from Gemini API' }),
+        body: JSON.stringify({ 
+          error: `Gemini API error: ${response.status}`,
+          details: errorText
+        }),
       };
     }
 
     const result = await response.json();
+    console.log('Gemini API response:', JSON.stringify(result, null, 2));
 
     const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
 
@@ -133,7 +159,10 @@ const handler: Handler = async (event) => {
           'Access-Control-Allow-Origin': '*',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ error: 'Failed to generate content from Gemini' }),
+        body: JSON.stringify({ 
+          error: 'No response generated',
+          geminiResponse: result
+        }),
       };
     }
 
@@ -145,9 +174,10 @@ const handler: Handler = async (event) => {
       },
       body: JSON.stringify({
         response: text,
-        sessionId,
+        sessionId: body.sessionId,
       }),
     };
+
   } catch (error: any) {
     console.error('Gemini Function Error:', error);
     return {
@@ -156,7 +186,10 @@ const handler: Handler = async (event) => {
         'Access-Control-Allow-Origin': '*',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ error: error.message || 'Unknown error' }),
+      body: JSON.stringify({ 
+        error: 'Internal server error',
+        details: error.message
+      }),
     };
   }
 };

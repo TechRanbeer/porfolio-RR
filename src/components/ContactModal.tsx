@@ -30,8 +30,17 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
         body: JSON.stringify(formData),
       });
 
+      console.log('Contact form response status:', response.status);
+
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorText = await response.text();
+        console.error('Contact form error response:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: `HTTP ${response.status}: ${errorText}` };
+        }
         throw new Error(errorData.error || 'Failed to send message');
       }
 
@@ -46,7 +55,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
       }, 2000);
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert(`There was an error sending your message: ${error instanceof Error ? error.message : 'Please try again.'}`);
+      alert(`There was an error sending your message: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
     } finally {
       setIsSubmitting(false);
     }
