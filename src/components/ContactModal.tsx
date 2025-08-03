@@ -22,6 +22,8 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
     setIsSubmitting(true);
 
     try {
+      console.log('Submitting contact form with data:', { ...formData, message: formData.message.substring(0, 50) + '...' });
+      
       const response = await fetch('/.netlify/functions/contact', {
         method: 'POST',
         headers: {
@@ -31,6 +33,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
       });
 
       console.log('Contact form response status:', response.status);
+      console.log('Contact form response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -41,6 +44,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
         } catch {
           errorData = { error: `HTTP ${response.status}: ${errorText}` };
         }
+        console.error('Parsed error data:', errorData);
         throw new Error(errorData.error || 'Failed to send message');
       }
 
@@ -55,7 +59,8 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
       }, 2000);
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert(`There was an error sending your message: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert(`There was an error sending your message: ${errorMessage}. Please check the console for more details and try again.`);
     } finally {
       setIsSubmitting(false);
     }
