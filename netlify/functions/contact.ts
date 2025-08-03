@@ -122,13 +122,13 @@ const handler: Handler = async (event) => {
 
     const { data, error } = await supabase
       .from('messages')
-      .insert({
+      .insert([{
         name: name.trim(),
         email: email.trim(),
         subject: subject.trim(),
         message: message.trim(),
         read: false
-      })
+      }])
       .select()
       .single();
 
