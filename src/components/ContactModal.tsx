@@ -19,11 +19,12 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('=== CONTACT FORM SUBMISSION START ===');
+    console.log('Form data:', { ...formData, message: formData.message.substring(0, 50) + '...' });
     setIsSubmitting(true);
 
     try {
-      console.log('Submitting contact form with data:', { ...formData, message: formData.message.substring(0, 50) + '...' });
-      
+      console.log('Making fetch request to contact function...');
       const response = await fetch('/.netlify/functions/contact', {
         method: 'POST',
         headers: {
@@ -32,36 +33,48 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
         body: JSON.stringify(formData),
       });
 
-      console.log('Contact form response status:', response.status);
-      console.log('Contact form response headers:', Object.fromEntries(response.headers.entries()));
+      console.log('Response received:');
+      console.log('- Status:', response.status);
+      console.log('- Status Text:', response.statusText);
+      console.log('- Headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Contact form error response:', errorText);
+        console.error('Error response text:', errorText);
+        
         let errorData;
         try {
           errorData = JSON.parse(errorText);
         } catch {
           errorData = { error: `HTTP ${response.status}: ${errorText}` };
         }
-        console.error('Parsed error data:', errorData);
+        
+        console.error('Parsed error:', errorData);
         throw new Error(errorData.error || 'Failed to send message');
       }
 
       const result = await response.json();
-      console.log('Message sent successfully:', result);
+      console.log('Success response:', result);
       
       setIsSubmitted(true);
+      console.log('Form submitted successfully, showing success message');
+      
       setTimeout(() => {
+        console.log('Closing modal and resetting form');
         onClose();
         setIsSubmitted(false);
         setFormData({ name: '', email: '', subject: '', message: '' });
       }, 2000);
+      
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error('=== CONTACT FORM ERROR ===');
+      console.error('Error object:', error);
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+      
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert(`There was an error sending your message: ${errorMessage}. Please check the console for more details and try again.`);
+      alert(`Error sending message: ${errorMessage}`);
     } finally {
+      console.log('Setting isSubmitting to false');
       setIsSubmitting(false);
     }
   };

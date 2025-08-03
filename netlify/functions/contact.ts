@@ -2,16 +2,18 @@ import type { Handler } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
 
 const handler: Handler = async (event) => {
-  console.log('Contact function called with method:', event.httpMethod);
-  console.log('Available environment variables:', Object.keys(process.env).filter(key => key.includes('SUPABASE')));
+  console.log('=== CONTACT FUNCTION START ===');
+  console.log('Method:', event.httpMethod);
+  console.log('Headers:', JSON.stringify(event.headers, null, 2));
 
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
+    console.log('Handling CORS preflight');
     return {
       statusCode: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Allow-Methods': 'POST, OPTIONS'
       },
       body: ''
@@ -19,6 +21,7 @@ const handler: Handler = async (event) => {
   }
 
   if (event.httpMethod !== 'POST') {
+    console.log('Method not allowed:', event.httpMethod);
     return {
       statusCode: 405,
       headers: {
@@ -30,22 +33,17 @@ const handler: Handler = async (event) => {
   }
 
   try {
-    // Try multiple environment variable names for Supabase
-    const supabaseUrl = process.env.VITE_SUPABASE_URL || 
-                       process.env.SUPABASE_URL || 
-                       process.env.REACT_APP_SUPABASE_URL;
-    
-    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 
-                       process.env.SUPABASE_ANON_KEY || 
-                       process.env.REACT_APP_SUPABASE_ANON_KEY;
+    // Get environment variables
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 
-    console.log('Supabase URL found:', !!supabaseUrl);
-    console.log('Supabase Key found:', !!supabaseKey);
-    console.log('URL starts with:', supabaseUrl?.substring(0, 20));
+    console.log('Environment check:');
+    console.log('- Supabase URL exists:', !!supabaseUrl);
+    console.log('- Supabase Key exists:', !!supabaseKey);
+    console.log('- URL preview:', supabaseUrl?.substring(0, 30) + '...');
 
     if (!supabaseUrl || !supabaseKey) {
-      console.error('Missing Supabase environment variables');
-      console.error('Available env vars:', Object.keys(process.env));
+      console.error('Missing Supabase credentials');
       return {
         statusCode: 500,
         headers: {
@@ -53,35 +51,37 @@ const handler: Handler = async (event) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          error: 'Server configuration error - missing Supabase credentials',
-          debug: {
-            hasUrl: !!supabaseUrl,
-            hasKey: !!supabaseKey,
-            envKeys: Object.keys(process.env).filter(key => key.includes('SUPABASE'))
-          }
+          error: 'Server configuration error',
+          details: 'Missing Supabase credentials'
         }),
       };
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    
+    // Parse request body
     if (!event.body) {
+      console.error('No request body');
       return {
         statusCode: 400,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ error: 'Request body is required' }),
+        body: JSON.stringify({ error: 'Request body required' }),
       };
     }
 
     const body = JSON.parse(event.body);
-    console.log('Parsed request body:', { ...body, message: body.message?.substring(0, 50) + '...' });
-    
+    console.log('Request body parsed:', {
+      name: body.name?.length,
+      email: body.email?.length,
+      subject: body.subject?.length,
+      message: body.message?.length
+    });
+
     const { name, email, subject, message } = body;
 
     if (!name || !email || !subject || !message) {
+      console.error('Missing required fields');
       return {
         statusCode: 400,
         headers: {
@@ -90,14 +90,22 @@ const handler: Handler = async (event) => {
         },
         body: JSON.stringify({ 
           error: 'All fields are required',
-          received: { name: !!name, email: !!email, subject: !!subject, message: !!message }
+          missing: {
+            name: !name,
+            email: !email,
+            subject: !subject,
+            message: !message
+          }
         }),
       };
     }
 
-    console.log('Attempting to insert message into Supabase...');
+    // Create Supabase client
+    console.log('Creating Supabase client...');
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Test Supabase connection first
+    // Test connection first
+    console.log('Testing Supabase connection...');
     const { data: testData, error: testError } = await supabase
       .from('messages')
       .select('count')
@@ -113,27 +121,44 @@ const handler: Handler = async (event) => {
         },
         body: JSON.stringify({ 
           error: 'Database connection failed',
-          details: testError.message
+          details: testError.message,
+          code: testError.code
         }),
       };
     }
 
-    console.log('Supabase connection test successful');
+    console.log('Connection test successful');
+
+    // Insert message
+    console.log('Inserting message...');
+    const messageData = {
+      name: name.trim(),
+      email: email.trim(),
+      subject: subject.trim(),
+      message: message.trim(),
+      read: false
+    };
+
+    console.log('Message data prepared:', {
+      ...messageData,
+      message: messageData.message.substring(0, 50) + '...'
+    });
 
     const { data, error } = await supabase
       .from('messages')
-      .insert([{
-        name: name.trim(),
-        email: email.trim(),
-        subject: subject.trim(),
-        message: message.trim(),
-        read: false
-      }])
+      .insert(messageData)
       .select()
       .single();
 
     if (error) {
-      console.error('Supabase insert error:', error);
+      console.error('Insert error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      
       return {
         statusCode: 500,
         headers: {
@@ -141,14 +166,15 @@ const handler: Handler = async (event) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          error: 'Failed to save message to database',
+          error: 'Failed to save message',
           details: error.message,
-          code: error.code
+          code: error.code,
+          hint: error.hint
         }),
       };
     }
 
-    console.log('Message saved successfully with ID:', data?.id);
+    console.log('Message saved successfully:', data?.id);
 
     return {
       statusCode: 200,
@@ -157,14 +183,17 @@ const handler: Handler = async (event) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ 
-        success: true, 
+        success: true,
         message: 'Message sent successfully',
         id: data?.id
       }),
     };
 
   } catch (error: any) {
-    console.error('Contact function error:', error);
+    console.error('=== CONTACT FUNCTION ERROR ===');
+    console.error('Error:', error);
+    console.error('Stack:', error.stack);
+    
     return {
       statusCode: 500,
       headers: {
@@ -173,8 +202,7 @@ const handler: Handler = async (event) => {
       },
       body: JSON.stringify({ 
         error: 'Internal server error',
-        details: error.message,
-        stack: error.stack
+        details: error.message
       }),
     };
   }
