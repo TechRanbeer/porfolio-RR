@@ -107,7 +107,8 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
             <div className="text-center py-8">
               <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-white mb-2">Message Sent!</h3>
-              <p className="text-slate-300">Thank you for reaching out. I'll get back to you soon!</p>
+              <p className="text-slate-300 mb-4">Thank you for reaching out. I'll get back to you soon!</p>
+              <p className="text-sm text-slate-400">Your message has been received and logged. You can also reach me directly at ranbeerraja1@gmail.com</p>
             </div>
           ) : (
             <>
