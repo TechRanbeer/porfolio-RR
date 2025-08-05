@@ -1,9 +1,9 @@
 import type { Handler } from '@netlify/functions';
+import { createClient } from '@supabase/supabase-js';
 
 const handler: Handler = async (event) => {
   console.log('=== CONTACT FUNCTION START ===');
   console.log('Method:', event.httpMethod);
-  console.log('Headers:', JSON.stringify(event.headers, null, 2));
 
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
@@ -20,7 +20,6 @@ const handler: Handler = async (event) => {
   }
 
   if (event.httpMethod !== 'POST') {
-    console.log('Method not allowed:', event.httpMethod);
     return {
       statusCode: 405,
       headers: {
@@ -32,31 +31,45 @@ const handler: Handler = async (event) => {
   }
 
   try {
-    // Parse request body
-    if (!event.body) {
-      console.error('No request body');
+    // Get Supabase credentials
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+
+    console.log('Environment check:');
+    console.log('- Supabase URL available:', !!supabaseUrl);
+    console.log('- Supabase Key available:', !!supabaseKey);
+
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Missing Supabase credentials');
       return {
-        statusCode: 400,
+        statusCode: 500,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ error: 'Request body required' }),
+        body: JSON.stringify({ 
+          error: 'Server configuration error - missing Supabase credentials',
+          debug: {
+            hasUrl: !!supabaseUrl,
+            hasKey: !!supabaseKey
+          }
+        }),
       };
     }
 
-    const body = JSON.parse(event.body);
-    console.log('Request body parsed:', {
-      name: body.name?.length,
-      email: body.email?.length,
-      subject: body.subject?.length,
-      message: body.message?.length
-    });
-
+    // Parse request body
+    const body = JSON.parse(event.body || '{}');
     const { name, email, subject, message } = body;
 
+    console.log('Form data received:', {
+      name: name?.substring(0, 20) + '...',
+      email: email?.substring(0, 20) + '...',
+      subject: subject?.substring(0, 30) + '...',
+      messageLength: message?.length
+    });
+
+    // Validate required fields
     if (!name || !email || !subject || !message) {
-      console.error('Missing required fields');
       return {
         statusCode: 400,
         headers: {
@@ -65,33 +78,46 @@ const handler: Handler = async (event) => {
         },
         body: JSON.stringify({ 
           error: 'All fields are required',
-          missing: {
-            name: !name,
-            email: !email,
-            subject: !subject,
-            message: !message
-          }
+          missing: { name: !name, email: !email, subject: !subject, message: !message }
         }),
       };
     }
 
-    // For now, we'll just log the message and return success
-    // This bypasses all database issues
-    console.log('=== MESSAGE RECEIVED ===');
-    console.log('From:', name, '<' + email + '>');
-    console.log('Subject:', subject);
-    console.log('Message:', message);
-    console.log('Timestamp:', new Date().toISOString());
-    console.log('=== END MESSAGE ===');
+    // Create Supabase client
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    console.log('Supabase client created successfully');
 
-    // In a real implementation, you could:
-    // 1. Send an email using a service like SendGrid, Mailgun, etc.
-    // 2. Store in a different database
-    // 3. Send to a webhook
-    // 4. Save to a file storage service
+    // Insert message into database
+    console.log('Attempting to insert message...');
+    const { data, error } = await supabase
+      .from('contact_messages')
+      .insert({
+        name: name.trim(),
+        email: email.trim(),
+        subject: subject.trim(),
+        message: message.trim()
+      })
+      .select()
+      .single();
 
-    // For now, we'll simulate success
-    const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    if (error) {
+      console.error('Supabase insert error:', error);
+      return {
+        statusCode: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          error: 'Failed to save message to database',
+          details: error.message,
+          code: error.code,
+          hint: error.hint
+        }),
+      };
+    }
+
+    console.log('Message saved successfully:', data?.id);
 
     return {
       statusCode: 200,
@@ -101,16 +127,14 @@ const handler: Handler = async (event) => {
       },
       body: JSON.stringify({ 
         success: true,
-        message: 'Message received successfully! Ranbeer will get back to you soon.',
-        id: messageId,
-        note: 'Your message has been logged and Ranbeer will be notified.'
+        message: 'Message sent successfully! Ranbeer will get back to you soon.',
+        id: data?.id
       }),
     };
 
   } catch (error: any) {
     console.error('=== CONTACT FUNCTION ERROR ===');
     console.error('Error:', error);
-    console.error('Stack:', error.stack);
     
     return {
       statusCode: 500,
