@@ -1,16 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Mail, Calendar, User, Eye, EyeOff, Trash2, RefreshCw, Search, Filter } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-
-interface ContactMessage {
-  id: string;
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-  read: boolean;
-  created_at: string;
-}
+import { getAllMessages, markMessageAsRead, deleteMessage, ContactMessage } from '../lib/firebase';
 
 const AdminPage: React.FC = () => {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
@@ -21,7 +11,7 @@ const AdminPage: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
 
-  // Simple password authentication (you can change this password)
+  // Simple password authentication
   const ADMIN_PASSWORD = 'ranbeer2025admin';
 
   const handleLogin = () => {
@@ -52,39 +42,22 @@ const AdminPage: React.FC = () => {
   const fetchMessages = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('contact_messages')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching messages:', error);
-        alert('Error fetching messages: ' + error.message);
-        return;
-      }
-
-      setMessages(data || []);
+      console.log('Fetching messages from Firebase...');
+      const fetchedMessages = await getAllMessages();
+      console.log('Messages fetched:', fetchedMessages.length);
+      setMessages(fetchedMessages);
     } catch (error) {
-      console.error('Error:', error);
-      alert('Error fetching messages');
+      console.error('Error fetching messages:', error);
+      alert('Error fetching messages: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setLoading(false);
     }
   };
 
-  const markAsRead = async (messageId: string, read: boolean) => {
+  const handleMarkAsRead = async (messageId: string, read: boolean) => {
     try {
-      const { error } = await supabase
-        .from('contact_messages')
-        .update({ read })
-        .eq('id', messageId);
-
-      if (error) {
-        console.error('Error updating message:', error);
-        alert('Error updating message');
-        return;
-      }
-
+      await markMessageAsRead(messageId, read);
+      
       // Update local state
       setMessages(prev => 
         prev.map(msg => 
@@ -96,26 +69,17 @@ const AdminPage: React.FC = () => {
         setSelectedMessage(prev => prev ? { ...prev, read } : null);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error updating message:', error);
       alert('Error updating message');
     }
   };
 
-  const deleteMessage = async (messageId: string) => {
+  const handleDeleteMessage = async (messageId: string) => {
     if (!confirm('Are you sure you want to delete this message?')) return;
 
     try {
-      const { error } = await supabase
-        .from('contact_messages')
-        .delete()
-        .eq('id', messageId);
-
-      if (error) {
-        console.error('Error deleting message:', error);
-        alert('Error deleting message');
-        return;
-      }
-
+      await deleteMessage(messageId);
+      
       // Update local state
       setMessages(prev => prev.filter(msg => msg.id !== messageId));
       
@@ -123,7 +87,7 @@ const AdminPage: React.FC = () => {
         setSelectedMessage(null);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error deleting message:', error);
       alert('Error deleting message');
     }
   };
@@ -184,7 +148,7 @@ const AdminPage: React.FC = () => {
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-xl font-bold">Admin Dashboard</h1>
+            <h1 className="text-xl font-bold">Admin Dashboard (Firebase)</h1>
           </div>
           <div className="flex items-center gap-4">
             <button
@@ -277,7 +241,7 @@ const AdminPage: React.FC = () => {
               {loading ? (
                 <div className="p-6 text-center">
                   <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2 text-purple-400" />
-                  <p>Loading messages...</p>
+                  <p>Loading messages from Firebase...</p>
                 </div>
               ) : filteredMessages.length === 0 ? (
                 <div className="p-6 text-center text-slate-400">
@@ -303,7 +267,7 @@ const AdminPage: React.FC = () => {
                           )}
                         </div>
                         <span className="text-xs text-slate-400">
-                          {new Date(message.created_at).toLocaleDateString()}
+                          {message.createdAt?.toDate?.()?.toLocaleDateString() || 'Unknown date'}
                         </span>
                       </div>
                       <p className="text-sm text-slate-300 mb-1">{message.email}</p>
@@ -327,7 +291,7 @@ const AdminPage: React.FC = () => {
                     <h2 className="text-xl font-bold">Message Details</h2>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => markAsRead(selectedMessage.id, !selectedMessage.read)}
+                        onClick={() => handleMarkAsRead(selectedMessage.id!, !selectedMessage.read)}
                         className={`flex items-center gap-2 px-3 py-1 rounded-lg text-sm transition-colors ${
                           selectedMessage.read 
                             ? 'bg-orange-600/20 text-orange-300 hover:bg-orange-600/30' 
@@ -338,7 +302,7 @@ const AdminPage: React.FC = () => {
                         {selectedMessage.read ? 'Mark Unread' : 'Mark Read'}
                       </button>
                       <button
-                        onClick={() => deleteMessage(selectedMessage.id)}
+                        onClick={() => handleDeleteMessage(selectedMessage.id!)}
                         className="flex items-center gap-2 px-3 py-1 rounded-lg text-sm bg-red-600/20 text-red-300 hover:bg-red-600/30 transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -364,7 +328,7 @@ const AdminPage: React.FC = () => {
                     <label className="text-sm text-slate-400">Date</label>
                     <p className="font-medium flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
-                      {new Date(selectedMessage.created_at).toLocaleString()}
+                      {selectedMessage.createdAt?.toDate?.()?.toLocaleString() || 'Unknown date'}
                     </p>
                   </div>
                   <div>

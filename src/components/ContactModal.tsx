@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Send, Mail, Github, Linkedin, Instagram, CheckCircle } from 'lucide-react';
-import { submitContactMessage } from '../lib/supabase';
+import { submitContactMessage } from '../lib/firebase';
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -19,42 +19,14 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('=== CONTACT FORM SUBMISSION START ===');
+    console.log('=== FIREBASE CONTACT FORM SUBMISSION START ===');
     console.log('Form data:', { ...formData, message: formData.message.substring(0, 50) + '...' });
     setIsSubmitting(true);
 
     try {
-      console.log('Making fetch request to contact function...');
-      const response = await fetch('/.netlify/functions/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      console.log('Response received:');
-      console.log('- Status:', response.status);
-      console.log('- Status Text:', response.statusText);
-      console.log('- Headers:', Object.fromEntries(response.headers.entries()));
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response text:', errorText);
-        
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch {
-          errorData = { error: `HTTP ${response.status}: ${errorText}` };
-        }
-        
-        console.error('Parsed error:', errorData);
-        throw new Error(errorData.error || 'Failed to send message');
-      }
-
-      const result = await response.json();
-      console.log('Success response:', result);
+      console.log('Submitting to Firebase...');
+      const result = await submitContactMessage(formData);
+      console.log('Firebase submission successful:', result);
       
       setIsSubmitted(true);
       console.log('Form submitted successfully, showing success message');
@@ -64,15 +36,14 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
         onClose();
         setIsSubmitted(false);
         setFormData({ name: '', email: '', subject: '', message: '' });
-      }, 2000);
+      }, 3000);
       
     } catch (error) {
-      console.error('=== CONTACT FORM ERROR ===');
+      console.error('=== FIREBASE CONTACT FORM ERROR ===');
       console.error('Error object:', error);
-      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
       
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert(`Error sending message: ${errorMessage}`);
+      alert(`Error sending message: ${errorMessage}. Please try emailing directly at ranbeerraja1@gmail.com`);
     } finally {
       console.log('Setting isSubmitting to false');
       setIsSubmitting(false);
@@ -108,7 +79,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
               <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-white mb-2">Message Sent!</h3>
               <p className="text-slate-300 mb-4">Thank you for reaching out. I'll get back to you soon!</p>
-              <p className="text-sm text-slate-400">Your message has been received and logged. You can also reach me directly at ranbeerraja1@gmail.com</p>
+              <p className="text-sm text-slate-400">Your message has been saved successfully using Firebase. You can also reach me directly at ranbeerraja1@gmail.com</p>
             </div>
           ) : (
             <>
@@ -237,7 +208,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
                     {isSubmitting ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Sending...
+                        Sending via Firebase...
                       </>
                     ) : (
                       <>
