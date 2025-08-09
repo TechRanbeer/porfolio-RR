@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Send, Mail, Github, Linkedin, Instagram, CheckCircle } from 'lucide-react';
-import { submitContactMessage } from '../lib/firebase';
+import { useForm, ValidationError } from '@formspree/react';
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -14,41 +14,9 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
     subject: '',
     message: ''
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('=== FIREBASE CONTACT FORM SUBMISSION START ===');
-    console.log('Form data:', { ...formData, message: formData.message.substring(0, 50) + '...' });
-    setIsSubmitting(true);
-
-    try {
-      console.log('Submitting to Firebase...');
-      const result = await submitContactMessage(formData);
-      console.log('Firebase submission successful:', result);
-      
-      setIsSubmitted(true);
-      console.log('Form submitted successfully, showing success message');
-      
-      setTimeout(() => {
-        console.log('Closing modal and resetting form');
-        onClose();
-        setIsSubmitted(false);
-        setFormData({ name: '', email: '', subject: '', message: '' });
-      }, 3000);
-      
-    } catch (error) {
-      console.error('=== FIREBASE CONTACT FORM ERROR ===');
-      console.error('Error object:', error);
-      
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert(`Error sending message: ${errorMessage}. Please try emailing directly at ranbeerraja1@gmail.com`);
-    } finally {
-      console.log('Setting isSubmitting to false');
-      setIsSubmitting(false);
-    }
-  };
+  // Formspree hook - replace 'YOUR_FORM_ID' with actual Formspree form ID
+  const [state, handleSubmit] = useForm("xdkogkpw"); // This is a demo form ID
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({
@@ -56,6 +24,30 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
       [e.target.name]: e.target.value
     }));
   };
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('=== FORMSPREE CONTACT FORM SUBMISSION START ===');
+    console.log('Form data:', { ...formData, message: formData.message.substring(0, 50) + '...' });
+    
+    // Create FormData object for Formspree
+    const formDataObj = new FormData();
+    formDataObj.append('name', formData.name);
+    formDataObj.append('email', formData.email);
+    formDataObj.append('subject', formData.subject);
+    formDataObj.append('message', formData.message);
+    
+    // Submit to Formspree
+    await handleSubmit(formDataObj);
+  };
+
+  // Handle success
+  if (state.succeeded) {
+    setTimeout(() => {
+      onClose();
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    }, 3000);
+  }
 
   if (!isOpen) return null;
 
@@ -74,12 +66,12 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
         </div>
 
         <div className="p-6">
-          {isSubmitted ? (
+          {state.succeeded ? (
             <div className="text-center py-8">
               <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-white mb-2">Message Sent!</h3>
+              <h3 className="text-xl font-bold text-white mb-2">Message Sent Successfully!</h3>
               <p className="text-slate-300 mb-4">Thank you for reaching out. I'll get back to you soon!</p>
-              <p className="text-sm text-slate-400">Your message has been saved successfully using Firebase. You can also reach me directly at ranbeerraja1@gmail.com</p>
+              <p className="text-sm text-slate-400">Your message has been delivered via Formspree. You can also reach me directly at ranbeerraja1@gmail.com</p>
             </div>
           ) : (
             <>
@@ -141,7 +133,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
               {/* Contact Form */}
               <div>
                 <h3 className="text-lg font-semibold text-white mb-4">Send me a message</h3>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={onSubmit} className="space-y-4">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -156,6 +148,12 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
                         className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
                         placeholder="Your Name"
                       />
+                      <ValidationError 
+                        prefix="Name" 
+                        field="name"
+                        errors={state.errors}
+                        className="text-red-400 text-sm mt-1"
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -169,6 +167,12 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
                         required
                         className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
                         placeholder="your@email.com"
+                      />
+                      <ValidationError 
+                        prefix="Email" 
+                        field="email"
+                        errors={state.errors}
+                        className="text-red-400 text-sm mt-1"
                       />
                     </div>
                   </div>
@@ -185,6 +189,12 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
                       className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
                       placeholder="Project Discussion"
                     />
+                    <ValidationError 
+                      prefix="Subject" 
+                      field="subject"
+                      errors={state.errors}
+                      className="text-red-400 text-sm mt-1"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -199,16 +209,22 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
                       className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none"
                       placeholder="Tell me about your project or how I can help..."
                     />
+                    <ValidationError 
+                      prefix="Message" 
+                      field="message"
+                      errors={state.errors}
+                      className="text-red-400 text-sm mt-1"
+                    />
                   </div>
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={state.submitting}
                     className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-3 rounded-lg transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-2 text-white font-medium"
                   >
-                    {isSubmitting ? (
+                    {state.submitting ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Sending via Firebase...
+                        Sending via Formspree...
                       </>
                     ) : (
                       <>
@@ -217,6 +233,10 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
                       </>
                     )}
                   </button>
+                  <ValidationError 
+                    errors={state.errors}
+                    className="text-red-400 text-sm text-center"
+                  />
                 </form>
               </div>
             </>
