@@ -105,13 +105,13 @@ const FormspreeAdminPage: React.FC = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="https://formspree.io/forms"
+              href="https://formspree.io/forms/xzzvybrb/submissions"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 text-white font-medium"
             >
               <ExternalLink className="w-5 h-5" />
-              Open Formspree Dashboard
+              View Form Submissions
             </a>
             <a
               href="mailto:ranbeerraja1@gmail.com"
