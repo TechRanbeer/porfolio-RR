@@ -148,7 +148,7 @@ function App() {
           </div>
 
           {/* Engineering meets innovation - Medium */}
-          <h3 className="text-3xl md:text-5xl font-bold mb-8 leading-tight font-manrope">
+          <h3 className="text-3xl md:text-5xl font-bold mb-8 leading-tight">
             Engineering meets{' '}
             <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
               innovation
