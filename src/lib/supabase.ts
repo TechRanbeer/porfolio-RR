@@ -1,17 +1,5 @@
-// src/lib/supabase.ts
-
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-// Types
+// Removed Supabase functionality as requested
+// Keeping interfaces for type compatibility
 export interface Message {
   id: string;
   name: string;
@@ -46,78 +34,32 @@ export interface ProjectView {
   created_at: string;
 }
 
-// Analytics
+// No-op functions to replace Supabase functionality
 export const trackPageView = async (pagePath: string) => {
-  const visitorId = getOrCreateVisitorId();
-
-  try {
-    await supabase.from('page_analytics').insert({
-      page_path: pagePath,
-      visitor_id: visitorId,
-      user_agent: navigator.userAgent,
-      referrer: document.referrer || null,
-    });
-  } catch (error) {
-    console.error('Error tracking page view:', error);
-  }
+  console.log('Page view tracked (no-op):', pagePath);
 };
 
 export const trackProjectView = async (projectId: string) => {
-  const visitorId = getOrCreateVisitorId();
-
-  try {
-    await supabase.from('project_views').insert({
-      project_id: projectId,
-      visitor_id: visitorId,
-    });
-  } catch (error) {
-    console.error('Error tracking project view:', error);
-  }
+  console.log('Project view tracked (no-op):', projectId);
 };
 
-// Contact Form
 export const submitContactMessage = async (
   messageData: Omit<Message, 'id' | 'read' | 'created_at'>
 ) => {
-  try {
-    const { data, error } = await supabase
-      .from('messages')
-      .insert(messageData)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  } catch (error) {
-    console.error('Error submitting message:', error);
-    throw error;
-  }
+  console.log('Contact message submitted (no-op):', messageData);
+  // Return a mock response to maintain compatibility
+  return {
+    id: 'mock-id',
+    ...messageData,
+    read: false,
+    created_at: new Date().toISOString(),
+  };
 };
 
-// Chat
 export const saveChatConversation = async (
   sessionId: string,
   userMessage: string,
   aiResponse: string
 ) => {
-  try {
-    await supabase.from('chat_conversations').insert({
-      session_id: sessionId,
-      user_message: userMessage,
-      ai_response: aiResponse,
-    });
-  } catch (error) {
-    console.error('Error saving chat conversation:', error);
-  }
+  console.log('Chat conversation saved (no-op):', { sessionId, userMessage, aiResponse });
 };
-
-// Unique Visitor ID
-function getOrCreateVisitorId(): string {
-  let visitorId = localStorage.getItem('visitor_id');
-  if (!visitorId) {
-    visitorId =
-      'visitor_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
-    localStorage.setItem('visitor_id', visitorId);
-  }
-  return visitorId;
-}
