@@ -33,7 +33,7 @@ const FormspreeAdminPage: React.FC = () => {
           </div>
           <h2 className="text-3xl font-bold mb-4">Contact Form Management</h2>
           <p className="text-slate-300 text-lg max-w-2xl mx-auto">
-            Your contact form is now powered by Formspree - a reliable, professional service designed specifically for contact forms.
+            The contact form is powered by Formspree - a reliable, professional service designed specifically for contact forms.
           </p>
         </div>
 
