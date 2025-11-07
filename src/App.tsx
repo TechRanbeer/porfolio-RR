@@ -414,7 +414,7 @@ function App() {
                   </div>
                   <div>
                     <h4 className="font-semibold">Phone</h4>
-                    <p className="text-slate-400 text-sm">+91 Ranbeer</p>
+                    <p className="text-slate-400 text-sm">+919769220377</p>
                   </div>
                 </div>
                 <p className="text-slate-400 text-sm">Mon-Fri from 10am to 4pm</p>
