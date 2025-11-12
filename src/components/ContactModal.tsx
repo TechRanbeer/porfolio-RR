@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Send, Mail, Github, Linkedin, Instagram, CheckCircle } from 'lucide-react';
 import { useForm, ValidationError } from '@formspree/react';
 
@@ -42,12 +42,16 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
   };
 
   // Handle success
-  if (state.succeeded) {
-    setTimeout(() => {
-      onClose();
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 3000);
-  }
+  useEffect(() => {
+    if (state.succeeded) {
+      const timer = setTimeout(() => {
+        onClose();
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [state.succeeded, onClose]);
 
   if (!isOpen) return null;
 
